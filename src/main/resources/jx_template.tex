@@ -1,0 +1,191 @@
+%-------------------------
+% Resume in Latex
+% Author : Jesse Miller
+%------------------------
+
+% supports 10, 11, 12pt font sizes
+% letterpaper = 8.5in x 11in
+\documentclass[letterpaper,11pt]{article}
+
+% set margins
+\usepackage[
+    left=0.5in,
+    right=0.5in,
+    top=0.4in,
+    bottom=0.4in,
+]{geometry}
+\usepackage{latexsym}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{hyphenat}
+\usepackage{fontawesome}
+\usepackage{enumitem}
+\input{glyphtounicode}
+\usepackage{parskip}
+\usepackage{etoolbox}  % for conditional logic
+\usepackage{csquotes}
+
+\usepackage{tgtermes}
+\renewcommand{\familydefault}{\rmdefault}
+
+% is_long_version = true will render more detailed resume
+\newtoggle{is_long_version} % Define the boolean variable
+\settoggle{is_long_version}{false}
+
+% clear all header and footer fields
+% \fancyhf{}
+% \fancyfoot{}
+% % remove lines between header/footer
+% \renewcommand{\headrulewidth}{0pt}
+% \renewcommand{\footrulewidth}{0pt}
+
+\urlstyle{same}
+
+% don't stretch text to fill the entire line
+\raggedbottom
+\raggedright
+% remove horizontal padding from table cells
+\setlength{\tabcolsep}{0in}
+
+% Section heading formatting
+\titleformat{\section}{
+  \scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%%% Set spacing %%%
+% set vertical spacing between sections
+\titlespacing*{\section}
+{0pt} % left indent
+{3pt} % spacing above
+{3pt} % spacing below
+
+\iftoggle{is_long_version}
+{\linespread{1.0}}  % single line spacing
+{\linespread{0.97}}  % single line spacing
+\setlength{\parskip}{0pt} % paragraph spacing
+
+% bullet list spacing
+\setlist[itemize]{itemsep=0pt} % vertical spacing between bullets
+\def\vspaceAfterBullets{3pt}
+
+\def\bulletIndent{15pt} % indent of bullet lists
+
+% set bullet list symbol formatting
+\setlist[itemize,1]{label=$\vcenter{\hbox{\tiny$\bullet$}}$} 
+\setlist[itemize,2]{label=$\vcenter{\hbox{\tiny$\bullet$}}$}
+\setlist[itemize,3]{label=$\vcenter{\hbox{\tiny$\circ$}}$}
+
+%-------------------------
+% Custom commands
+
+\newcommand{\bulletItem}[1]{
+  \item\small{
+    {#1}
+  }
+}
+
+% company name -- location
+\newcommand{\companyNameAndLocationHeading}[2]{
+  \item 
+    \begin{tabular*}{1.0\textwidth}[b]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2
+    \end{tabular*}
+}
+
+% job title -- date
+\newcommand{\titleAndDateHeading}[2]{
+    \item
+    \begin{tabular*}{1.0\textwidth}[b]{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2}
+    \end{tabular*}
+}
+
+% project name -- date
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.0\textwidth}[b]{l@{\extracolsep{\fill}}r}
+      \small#1 & #2
+    \end{tabular*}
+}
+
+\newcommand{\sectionListStart}{\begin{itemize}[leftmargin=0pt, label={}]}
+\newcommand{\sectionListEnd}{\end{itemize}}
+
+\newcommand{\outerBulletListStart}{\begin{itemize}[leftmargin=\bulletIndent]}
+\newcommand{\outerBulletListEnd}{\end{itemize}\vspace{\vspaceAfterBullets}}
+
+\newcommand{\innerBulletListStart}{\begin{itemize}[leftmargin=\bulletIndent]}
+\newcommand{\innerBulletListEnd}{\end{itemize}}
+
+% blue colored hyperlinks
+\newcommand{\bref}[2]{\href{#1}{\color{blue}{#2}}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%
+\begin{document}
+%---------- HEADING ----------
+\def\spaceAfterLogo{0.5pt}
+\begin{center}
+  \textbf{\Huge {{CANDIDATE_NAME}}} \\ \vspace{3pt}
+  \small
+  \hspace{\spaceAfterLogo} \href{tel:{{CANDIDATE_PHONE}}}{{CANDIDATE_PHONE}}
+  $|$
+   \hspace{\spaceAfterLogo} \href{mailto:{{CANDIDATE_EMAIL}}}{{CANDIDATE_EMAIL}}
+  $|$
+   \hspace{\spaceAfterLogo} {\underline{\href{https://www.linkedin.com/in/{{CANDIDATE_LINKEDIN}}}{linkedin.com/in/{{CANDIDATE_LINKEDIN}}}}}
+  $|$
+  \hspace{\spaceAfterLogo} 
+  {\underline{{\href{https://{{CANDIDATE_PORTFOLIO}}/}{Portfolio}}}} 
+  $|$
+  \hspace{\spaceAfterLogo} {{CANDIDATE_LOCATION}}
+\end{center}
+
+%----------- EXPERIENCE -----------
+\section{Experience}
+\sectionListStart
+{{EXPERIENCE_SECTION}}
+\sectionListEnd
+
+%----------- EDUCATION -----------
+\section{Education}
+\sectionListStart
+\companyNameAndLocationHeading
+{North Carolina State University $|$ \small{Raleigh, NC}}{\textit{Aug. 2023 \textbf{--} May 2025}}
+\titleAndDateHeading
+{Master of Computer Science}{GPA: 4.0/4.0}
+\companyNameAndLocationHeading
+{\href{https://msub.digitaluniversity.ac/}{Maharaja Sayajirao University of Baroda} $|$ \small{Baroda, India}}{\textit{Jun 2017 \textbf{--} May 2021}}
+\titleAndDateHeading
+{Bachelor's of Engineering in Computer Science and Engineering}{GPA: 3.97/4.0}
+\sectionListEnd
+
+%----------- SKILLS -----------
+\section{Skills}
+\sectionListStart
+\bulletItem{\textbf{Languages:}{ Java, TypeScript, C++, JavaScript,  Python, SQL, HTML5, CSS}}
+\vspace{\vspaceAfterBullets}
+\bulletItem{\textbf{Skills \& Technologies:}{ Angular, React, OpenCV, Git, Docker, AWS, JIRA, CI/CD, Jest, Lambda, SFML, Cloud Computing, Agile Development, Frontend, Backend, Full-Stack, Object Oriented Programming techniques, NodeJS, Kubernetes}}
+\vspace{\vspaceAfterBullets}
+\bulletItem{\textbf{Tools:}{ VS Code, Figma, Adobe Photoshop, Jupyter Notebook}}
+\vspace{\vspaceAfterBullets}
+\bulletItem{\textbf{Certifications:}{ {AWS Developer - Associate} \href{https://www.credly.com/badges/d4d4f75b-4cb0-4a20-9894-81c708702ac6/public_url}{\textcolor{blue}{\faLink}}, Machine Learning - Stanford University \href{https://coursera.org/share/c9a90f32d51a5129cb43d1bc746e889a}{\textcolor{blue}{\faLink}}}}
+\sectionListEnd
+
+%----------- PROJECTS -----------
+\section{Projects}
+\sectionListStart
+{{PROJECTS_SECTION}}
+\sectionListEnd
+
+%-------------------------------------------
+\end{document}

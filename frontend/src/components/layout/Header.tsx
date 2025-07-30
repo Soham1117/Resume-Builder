@@ -1,6 +1,7 @@
-import React from 'react';
-import { Download, Settings, Sun, Moon, Upload, Database, LogOut } from 'lucide-react';
-import Button from '../ui/Button';
+import React from "react";
+import { Download, Sun, Moon, Upload, Database, LogOut } from "lucide-react";
+import Button from "../ui/Button";
+import Logo from "../ui/Logo";
 
 interface HeaderProps {
   onExport?: () => void;
@@ -15,26 +16,20 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({
   onExport,
-  onSettings,
   onLoadData,
   onLogout,
   isDarkMode = false,
   onToggleTheme,
   isSaving = false,
-  hasStoredData = false
+  hasStoredData = false,
 }) => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold text-gray-900">
-            Resume Builder
-          </h1>
-          <span className="text-sm text-gray-500">
-            Professional Resume Creator
-          </span>
+          <Logo size="lg" />
         </div>
-        
+
         <div className="flex items-center space-x-3">
           {/* Data Persistence Controls */}
           {onLoadData && (
@@ -43,14 +38,16 @@ const Header: React.FC<HeaderProps> = ({
               size="sm"
               onClick={onLoadData}
               disabled={isSaving}
-              className={`flex items-center space-x-2 ${hasStoredData ? 'text-green-600 border-green-600' : ''}`}
+              className={`flex items-center space-x-2 ${
+                hasStoredData ? "text-green-600 border-green-600" : ""
+              }`}
             >
               <Upload className="h-4 w-4" />
               <span>Load Data</span>
               {hasStoredData && <Database className="h-3 w-3" />}
             </Button>
           )}
-          
+
           {onToggleTheme && (
             <Button
               variant="ghost"
@@ -65,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({
               )}
             </Button>
           )}
-          
+
           {onExport && (
             <Button
               variant="outline"
@@ -77,18 +74,7 @@ const Header: React.FC<HeaderProps> = ({
               <span>Export PDF</span>
             </Button>
           )}
-          
-          {onSettings && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onSettings}
-              className="p-2"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-          )}
-          
+
           {onLogout && (
             <Button
               variant="outline"
@@ -106,4 +92,4 @@ const Header: React.FC<HeaderProps> = ({
   );
 };
 
-export default Header; 
+export default Header;

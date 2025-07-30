@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { apiService } from '../services/api';
-import { toast } from 'react-hot-toast';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { apiService } from "../services/api";
+import { toast } from "react-hot-toast";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-const schema = yup.object({
-  usernameOrEmail: yup.string().required('Username or email is required'),
-  password: yup.string().required('Password is required'),
-}).required();
+const schema = yup
+  .object({
+    usernameOrEmail: yup.string().required("Username or email is required"),
+    password: yup.string().required("Password is required"),
+  })
+  .required();
 
 type LoginFormData = yup.InferType<typeof schema>;
 
@@ -34,10 +36,11 @@ const LoginPage: React.FC = () => {
     try {
       const response = await apiService.login(data);
       login(response);
-      toast.success('Login successful!');
-      navigate('/');
+      toast.success("Login successful!");
+      navigate("/");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      const errorMessage =
+        error instanceof Error ? error.message : "Login failed";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -47,12 +50,17 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
+        <div className="text-center flex flex-col items-center">
+          <img
+            src="/logo.png"
+            alt="Resume Builder Logo"
+            className="h-36 w-36"
+          />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
+            Or{" "}
             <Link
               to="/register"
               className="font-medium text-indigo-600 hover:text-indigo-500"
@@ -68,13 +76,15 @@ const LoginPage: React.FC = () => {
                 Username or Email
               </label>
               <input
-                {...register('usernameOrEmail')}
+                {...register("usernameOrEmail")}
                 type="text"
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Username or Email"
               />
               {errors.usernameOrEmail && (
-                <p className="mt-1 text-sm text-red-600">{errors.usernameOrEmail.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.usernameOrEmail.message}
+                </p>
               )}
             </div>
             <div className="relative">
@@ -82,8 +92,8 @@ const LoginPage: React.FC = () => {
                 Password
               </label>
               <input
-                {...register('password')}
-                type={showPassword ? 'text' : 'password'}
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
               />
@@ -99,7 +109,9 @@ const LoginPage: React.FC = () => {
                 )}
               </button>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
           </div>
@@ -113,7 +125,7 @@ const LoginPage: React.FC = () => {
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                'Sign in'
+                "Sign in"
               )}
             </button>
           </div>
@@ -123,4 +135,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

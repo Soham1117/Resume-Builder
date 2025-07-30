@@ -72,7 +72,7 @@ Resume Builder is a comprehensive platform that allows users to create, edit, an
 # 1. Clone and setup
 git clone <repository-url>
 cd Resume-Builder
-cp env.template .env
+cp env.example .env
 
 # 2. Configure environment
 nano .env  # Fill in your database and API keys
@@ -123,10 +123,7 @@ open http://localhost:5173
    cd frontend
 
    # Copy frontend environment template
-   cp env.template .env
-
-   # Edit .env to set your API URL
-   # VITE_API_BASE_URL=http://localhost:8080/api
+   cp env.example .env
 
    npm install
    npm run dev
@@ -137,58 +134,6 @@ open http://localhost:5173
    ```bash
    # The application will automatically create tables
    # Run migrations to populate sample data
-   ```
-
-### Configuration
-
-1. **Environment Variables Setup**
-
-   ```bash
-   # Copy the environment template
-   cp env.template .env
-
-   # Edit the .env file with your actual values
-   nano .env
-   ```
-
-2. **Required Environment Variables**
-
-   ```bash
-   # Database Configuration
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=resume_builder
-   DB_USERNAME=your_db_username
-   DB_PASSWORD=your_db_password
-
-   # JWT Configuration
-   JWT_SECRET=your_super_secret_jwt_key_here_make_it_long_and_random
-
-   # AI Service Configuration
-   OPENAI_API_KEY=your_openai_api_key_here
-   OPENAI_API_BASE_URL=https://api.openai.com/v1
-
-   # Server Configuration
-   SERVER_PORT=8080
-   CORS_ALLOWED_ORIGINS=http://localhost:5173
-   ```
-
-3. **Generate JWT Secret**
-
-   ```bash
-   # Generate a secure JWT secret
-   openssl rand -base64 64
-   ```
-
-4. **Database Setup**
-
-   ```sql
-   -- Create database
-   CREATE DATABASE resume_builder;
-
-   -- Create user (optional)
-   CREATE USER resume_user WITH PASSWORD 'your_password';
-   GRANT ALL PRIVILEGES ON DATABASE resume_builder TO resume_user;
    ```
 
 ## 🧪 Testing the Application
@@ -243,7 +188,6 @@ Resume Builder/
 └── 🗄️ Database
     └── src/main/resources/db/migration/
         ├── V1__create_resume_tables.sql
-        ├── V2__insert_soham_patel_data.sql
         └── V4__insert_test_user_data.sql
 ```
 

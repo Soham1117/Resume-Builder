@@ -46,7 +46,7 @@ print_status "Server: ubuntu@$SERVER_IP"
 print_status "Destination: /opt/resume-builder/.env"
 
 # Copy the file
-scp .env ubuntu@$SERVER_IP:/opt/resume-builder/.env
+scp -i dashboard.pem .env ubuntu@$SERVER_IP:/opt/resume-builder/.env
 
 if [ $? -eq 0 ]; then
     print_status "✅ .env file copied successfully!"

@@ -149,9 +149,10 @@ sudo -u postgres psql -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public 
 print_status "Setting up application..."
 
 # Create application directory structure
-mkdir -p $APP_DIR
-mkdir -p $APP_DIR/generated-pdfs
-mkdir -p $APP_DIR/logs
+sudo mkdir -p $APP_DIR
+sudo mkdir -p $APP_DIR/generated-pdfs
+sudo mkdir -p $APP_DIR/logs
+sudo chown -R $APP_USER:$APP_USER $APP_DIR
 
 # Build the application
 print_status "Building the Spring Boot application..."
@@ -170,8 +171,8 @@ fi
 
 # Install the application
 print_status "Installing the application..."
-cp target/resume-updater-1.0.0.jar $APP_DIR/$JAR_NAME
-chown $APP_USER:$APP_USER $APP_DIR/$JAR_NAME
+sudo cp target/resume-updater-1.0.0.jar $APP_DIR/$JAR_NAME
+sudo chown $APP_USER:$APP_USER $APP_DIR/$JAR_NAME
 
 # Create environment file placeholder
 print_status "Creating environment file placeholder..."
@@ -292,7 +293,7 @@ fi
 print_status "Creating utility scripts..."
 
 # Health check script
-cat > $APP_DIR/health-check.sh <<'EOF'
+sudo tee $APP_DIR/health-check.sh > /dev/null <<'EOF'
 #!/bin/bash
 if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
     echo "Application is healthy"
@@ -303,10 +304,10 @@ else
 fi
 EOF
 
-chmod +x $APP_DIR/health-check.sh
+sudo chmod +x $APP_DIR/health-check.sh
 
 # Quick update script
-cat > $APP_DIR/update.sh <<'EOF'
+sudo tee $APP_DIR/update.sh > /dev/null <<'EOF'
 #!/bin/bash
 # Quick update script for Resume Builder
 set -e
@@ -346,7 +347,7 @@ else
 fi
 EOF
 
-chmod +x $APP_DIR/update.sh
+sudo chmod +x $APP_DIR/update.sh
 
 
 

@@ -76,7 +76,7 @@ public class ResumeBlockEmbedder {
         String blockText = generateBlockText(block);
         String cacheKey = block.getId() + "_" + blockText.hashCode();
         
-        return embeddingCache.computeIfAbsent(cacheKey, _ -> {
+        return embeddingCache.computeIfAbsent(cacheKey, key -> {
             try {
                 return embeddingService.getEmbedding(blockText);
             } catch (Exception e) {

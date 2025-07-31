@@ -91,9 +91,9 @@ sudo cp target/resume-updater-1.0.0.jar $APP_DIR/resume-updater.jar
 sudo chown resume-app:resume-app $APP_DIR/resume-updater.jar
 
 # Update nginx configuration if needed
-if [ -f "deployment/nginx.conf" ]; then
+if [ -f "deployment/nginx-aetherdash.conf" ]; then
     print_status "Updating nginx configuration..."
-    sudo cp deployment/nginx.conf /etc/nginx/sites-available/resume-builder
+    sudo cp deployment/nginx-aetherdash.conf /etc/nginx/sites-available/aetherdash.xyz
     sudo nginx -t
     sudo systemctl reload nginx
 fi

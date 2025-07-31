@@ -267,7 +267,23 @@ sudo systemctl start resume-builder
 
 # Wait for application to start
 print_status "Waiting for application to start..."
-sleep 15
+print_status "This may take 30-60 seconds for first startup (Flyway migrations)..."
+sleep 30
+
+# Try multiple health checks with increasing delays
+for i in {1..6}; do
+    print_status "Health check attempt $i/6..."
+    if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+        break
+    fi
+    if [ $i -eq 6 ]; then
+        print_error "Application failed to respond after 6 attempts"
+        print_status "Checking recent logs..."
+        sudo journalctl -u resume-builder --no-pager -n 30
+        exit 1
+    fi
+    sleep 10
+done
 
 # Check if .env file exists
 print_status "Checking for .env file..."

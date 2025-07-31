@@ -118,7 +118,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 30000, // 30 seconds timeout
+  timeout: 120000, // 2 minutes timeout for complex operations
 });
 
 // Request interceptor for authentication and logging
@@ -662,13 +662,18 @@ class ApiService {
       );
       const savedExperience = response.data;
 
+      // Save bullets and technologies in parallel for better performance
+      const promises = [];
+
       // If there are bullets, save them separately
       if (experience.bullets && experience.bullets.length > 0) {
         for (const bullet of experience.bullets) {
-          await this.addBulletToExperience(
-            savedExperience.id!,
-            bullet.bulletText,
-            bullet.orderIndex
+          promises.push(
+            this.addBulletToExperience(
+              savedExperience.id!,
+              bullet.bulletText,
+              bullet.orderIndex
+            )
           );
         }
       }
@@ -676,11 +681,18 @@ class ApiService {
       // If there are technologies, save them separately
       if (experience.technologies && experience.technologies.length > 0) {
         for (const tech of experience.technologies) {
-          await this.addTechnologyToExperience(
-            savedExperience.id!,
-            tech.technology
+          promises.push(
+            this.addTechnologyToExperience(
+              savedExperience.id!,
+              tech.technology
+            )
           );
         }
+      }
+
+      // Wait for all operations to complete
+      if (promises.length > 0) {
+        await Promise.all(promises);
       }
 
       return savedExperience;
@@ -847,13 +859,18 @@ class ApiService {
       const response = await api.post<Project>("/projects", backendProject);
       const savedProject = response.data;
 
+      // Save bullets and technologies in parallel for better performance
+      const promises = [];
+
       // If there are bullets, save them separately
       if (project.bullets && project.bullets.length > 0) {
         for (const bullet of project.bullets) {
-          await this.addBulletToProject(
-            savedProject.id!,
-            bullet.bulletText,
-            bullet.orderIndex
+          promises.push(
+            this.addBulletToProject(
+              savedProject.id!,
+              bullet.bulletText,
+              bullet.orderIndex
+            )
           );
         }
       }
@@ -861,8 +878,15 @@ class ApiService {
       // If there are technologies, save them separately
       if (project.technologiesList && project.technologiesList.length > 0) {
         for (const tech of project.technologiesList) {
-          await this.addTechnologyToProject(savedProject.id!, tech.technology);
+          promises.push(
+            this.addTechnologyToProject(savedProject.id!, tech.technology)
+          );
         }
+      }
+
+      // Wait for all operations to complete
+      if (promises.length > 0) {
+        await Promise.all(promises);
       }
 
       return savedProject;

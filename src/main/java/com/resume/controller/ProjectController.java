@@ -1,16 +1,25 @@
 package com.resume.controller;
 
-import com.resume.model.Project;
-import com.resume.model.ProjectBullet;
-import com.resume.model.ProjectTechnology;
-import com.resume.service.ProjectService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.resume.model.Project;
+import com.resume.model.ProjectBullet;
+import com.resume.model.ProjectTechnology;
+import com.resume.service.ProjectService;
 
 @RestController
 @RequestMapping("/projects")
@@ -69,9 +78,17 @@ public class ProjectController {
     public ResponseEntity<Project> saveProject(@RequestBody Project project) {
         try {
             String username = getCurrentUsername();
+            System.out.println("Saving project for user: " + username);
+            System.out.println("Project data: " + project);
+            
+            if (project.getTitle() == null || project.getTitle().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(null);
+            }
+            
             Project savedProject = projectService.saveProject(username, project);
             return ResponseEntity.ok(savedProject);
         } catch (Exception e) {
+            System.err.println("Error saving project: " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

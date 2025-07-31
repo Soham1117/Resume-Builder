@@ -644,11 +644,54 @@ class ApiService {
 
   async saveExperience(experience: Experience): Promise<Experience> {
     try {
-      const response = await api.post<Experience>("/experiences", experience);
-      return response.data;
-    } catch (error) {
+      // Transform frontend data to backend format - only send basic experience data
+      const backendExperience = {
+        id: experience.id,
+        title: experience.title,
+        company: experience.company,
+        location: experience.location,
+        dateRange: experience.dateRange,
+        description: experience.description,
+        priority: experience.priority,
+      };
+
+      console.log("Sending experience data:", backendExperience);
+      const response = await api.post<Experience>(
+        "/experiences",
+        backendExperience
+      );
+      const savedExperience = response.data;
+
+      // If there are bullets, save them separately
+      if (experience.bullets && experience.bullets.length > 0) {
+        for (const bullet of experience.bullets) {
+          await this.addBulletToExperience(
+            savedExperience.id!,
+            bullet.bulletText,
+            bullet.orderIndex
+          );
+        }
+      }
+
+      // If there are technologies, save them separately
+      if (experience.technologies && experience.technologies.length > 0) {
+        for (const tech of experience.technologies) {
+          await this.addTechnologyToExperience(
+            savedExperience.id!,
+            tech.technology
+          );
+        }
+      }
+
+      return savedExperience;
+    } catch (error: any) {
       console.error("Error saving experience:", error);
-      throw new Error("Failed to save experience");
+      console.error("Response data:", error.response?.data);
+      console.error("Response status:", error.response?.status);
+      console.error("Response headers:", error.response?.headers);
+      throw new Error(
+        `Failed to save experience: ${error.response?.data || error.message}`
+      );
     }
   }
 
@@ -791,11 +834,46 @@ class ApiService {
 
   async saveProject(project: Project): Promise<Project> {
     try {
-      const response = await api.post<Project>("/projects", project);
-      return response.data;
-    } catch (error) {
+      // Transform frontend data to backend format - only send basic project data
+      const backendProject = {
+        id: project.id,
+        title: project.title,
+        technologies: project.technologies,
+        link: project.link,
+        priority: project.priority,
+      };
+
+      console.log("Sending project data:", backendProject);
+      const response = await api.post<Project>("/projects", backendProject);
+      const savedProject = response.data;
+
+      // If there are bullets, save them separately
+      if (project.bullets && project.bullets.length > 0) {
+        for (const bullet of project.bullets) {
+          await this.addBulletToProject(
+            savedProject.id!,
+            bullet.bulletText,
+            bullet.orderIndex
+          );
+        }
+      }
+
+      // If there are technologies, save them separately
+      if (project.technologiesList && project.technologiesList.length > 0) {
+        for (const tech of project.technologiesList) {
+          await this.addTechnologyToProject(savedProject.id!, tech.technology);
+        }
+      }
+
+      return savedProject;
+    } catch (error: any) {
       console.error("Error saving project:", error);
-      throw new Error("Failed to save project");
+      console.error("Response data:", error.response?.data);
+      console.error("Response status:", error.response?.status);
+      console.error("Response headers:", error.response?.headers);
+      throw new Error(
+        `Failed to save project: ${error.response?.data || error.message}`
+      );
     }
   }
 

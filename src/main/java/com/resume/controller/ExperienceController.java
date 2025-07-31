@@ -1,16 +1,25 @@
 package com.resume.controller;
 
-import com.resume.model.Experience;
-import com.resume.model.ExperienceBullet;
-import com.resume.model.ExperienceTechnology;
-import com.resume.service.ExperienceService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.resume.model.Experience;
+import com.resume.model.ExperienceBullet;
+import com.resume.model.ExperienceTechnology;
+import com.resume.service.ExperienceService;
 
 @RestController
 @RequestMapping("/experiences")
@@ -69,9 +78,21 @@ public class ExperienceController {
     public ResponseEntity<Experience> saveExperience(@RequestBody Experience experience) {
         try {
             String username = getCurrentUsername();
+            System.out.println("Saving experience for user: " + username);
+            System.out.println("Experience data: " + experience);
+            
+            if (experience.getTitle() == null || experience.getTitle().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(null);
+            }
+            
+            if (experience.getCompany() == null || experience.getCompany().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(null);
+            }
+            
             Experience savedExperience = experienceService.saveExperience(username, experience);
             return ResponseEntity.ok(savedExperience);
         } catch (Exception e) {
+            System.err.println("Error saving experience: " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

@@ -7,11 +7,7 @@ import type {
 } from "../types";
 import type { ResumeBlock } from "../utils/dataTransform";
 import { transformResumeBlocksToContentItems } from "../utils/dataTransform";
-import type {
-  AuthRequest,
-  RegisterRequest,
-  AuthResponse,
-} from "../types/auth";
+import type { AuthRequest, RegisterRequest, AuthResponse } from "../types/auth";
 
 // Backend response interface
 interface BackendResumeData {
@@ -115,7 +111,7 @@ export interface Education {
 
 // Configure axios with base URL - Spring Boot has context path /api
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+  import.meta.env.VITE_API_BASE_URL || "https://aetherdash.xyz/resume/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -549,7 +545,15 @@ class ApiService {
       const response = await api.get<PersonalInfo>("/personal-info");
       return response.data;
     } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'status' in error.response && error.response.status === 404) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "status" in error.response &&
+        error.response.status === 404
+      ) {
         return null;
       }
       console.error("Error getting personal info:", error);

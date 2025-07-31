@@ -273,7 +273,7 @@ sleep 30
 # Try multiple health checks with increasing delays
 for i in {1..6}; do
     print_status "Health check attempt $i/6..."
-    if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+    if curl -f http://localhost:8080/api/auth/health > /dev/null 2>&1; then
         break
     fi
     if [ $i -eq 6 ]; then
@@ -301,12 +301,12 @@ if [ ! -f "$APP_DIR/.env" ]; then
     fi
 else
     print_status "✅ .env file found"
-    chmod 600 $APP_DIR/.env
+    sudo chmod 600 $APP_DIR/.env
 fi
 
 # Check if application is running
 print_status "Checking application status..."
-if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+if curl -f http://localhost:8080/api/auth/health > /dev/null 2>&1; then
     print_status "✅ Application is running successfully!"
 else
     print_error "❌ Application failed to start. Checking logs..."
@@ -325,7 +325,7 @@ print_status "Creating utility scripts..."
 # Health check script
 sudo tee $APP_DIR/health-check.sh > /dev/null <<'EOF'
 #!/bin/bash
-if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+if curl -f http://localhost:8080/api/auth/health > /dev/null 2>&1; then
     echo "Application is healthy"
     exit 0
 else
@@ -365,7 +365,7 @@ sudo systemctl start resume-builder
 
 # Wait and check
 sleep 10
-if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+if curl -f http://localhost:8080/api/auth/health > /dev/null 2>&1; then
     echo "✅ Update successful!"
     rm /opt/resume-builder/resume-updater.jar.backup
 else

@@ -149,7 +149,7 @@ public class LaTeXService {
             
             // Add title and date
             latex.append("\\begin{tabular*}{1.0\\textwidth}[b]{l@{\\extracolsep{\\fill}}r}\n");
-            latex.append("\\textit{\\small").append(escapeLatex(experience.getTitle())).append("} & \\textit{\\small ").append(escapeLatex(experience.getDateRange())).append("}\n");
+            latex.append("\\textit{\\small ").append(escapeLatex(experience.getTitle())).append("} & \\textit{\\small ").append(escapeLatex(experience.getDateRange())).append("}\n");
             latex.append("\\end{tabular*}\n");
             
             // Start bullet list
@@ -223,7 +223,7 @@ public class LaTeXService {
             
             // Add project heading
             latex.append("\\begin{tabular*}{1.0\\textwidth}[b]{l@{\\extracolsep{\\fill}}r}\n");
-            latex.append("\\small").append(heading.toString()).append(" & {}\n");
+            latex.append("\\small ").append(heading.toString()).append(" & {}\n");
             latex.append("\\end{tabular*}\n");
             
             // Start bullet list

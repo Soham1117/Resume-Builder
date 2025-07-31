@@ -161,8 +161,8 @@ if [ ! -f "pom.xml" ]; then
     exit 1
 fi
 
-# Set Maven options for better performance (reduced for smaller instances)
-export MAVEN_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC"
+# Set Maven options optimized for t3.micro
+export MAVEN_OPTS="-Xmx768m -Xms384m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 
 print_status "Running Maven build (this may take a few minutes)..."
 print_status "Maven options: $MAVEN_OPTS"

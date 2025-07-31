@@ -71,6 +71,8 @@ public class ResumeController {
             ResumeData selectedResumeData = new ResumeData();
             selectedResumeData.setExperiences(selectedExperiences);
             selectedResumeData.setProjects(selectedProjects);
+            selectedResumeData.setSkills(allBlocks.getSkills()); // Include skills in analysis
+            selectedResumeData.setEducation(allBlocks.getEducation()); // Include education in analysis
                 
             // Get personal information from database
             PersonalInfo personalInfo = personalInfoService.getPersonalInfo(username);
@@ -283,6 +285,13 @@ public class ResumeController {
             ResumeData resumeData = new ResumeData();
             resumeData.setExperiences(request.getExperiences());
             resumeData.setProjects(request.getProjects());
+            
+            // Extract skills, education, and certifications from the request if available
+            if (request.getResumeData() != null) {
+                resumeData.setSkills(request.getResumeData().getSkills());
+                resumeData.setEducation(request.getResumeData().getEducation());
+                resumeData.setCertifications(request.getResumeData().getCertifications());
+            }
 
             String latexContent = latexService.generateResume(
                 resumeData, request.getCandidateName(), request.getCandidateEmail(), request.getCandidatePhone(),

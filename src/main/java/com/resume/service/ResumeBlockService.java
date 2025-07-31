@@ -3,6 +3,7 @@ package com.resume.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,11 +14,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.resume.model.Education;
+import com.resume.model.EducationBlock;
 import com.resume.model.Experience;
 import com.resume.model.Project;
 import com.resume.model.ResumeBlock;
 import com.resume.model.ResumeData;
 import com.resume.model.ScoredBlock;
+import com.resume.model.Skill;
+import com.resume.model.SkillsBlock;
 import com.resume.model.User;
 import com.resume.repository.UserRepository;
 
@@ -44,6 +49,12 @@ public class ResumeBlockService {
     private ProjectService projectService;
 
     @Autowired
+    private SkillService skillService;
+
+    @Autowired
+    private EducationService educationService;
+
+    @Autowired
     private UserRepository userRepository;
 
     private ResumeData resumeData;
@@ -62,10 +73,20 @@ public class ResumeBlockService {
             List<Project> projects = projectService.getAllProjects(username);
             List<ResumeBlock> projectBlocks = convertProjectsToResumeBlocks(projects);
 
+            // Load skills from database
+            List<Skill> skills = skillService.getAllSkills(username);
+            List<SkillsBlock> skillsBlocks = convertSkillsToSkillsBlocks(skills);
+
+            // Load education from database
+            List<Education> education = educationService.getAllEducation(username);
+            List<EducationBlock> educationBlocks = convertEducationToEducationBlocks(education);
+
             // Create ResumeData object
             ResumeData data = new ResumeData();
             data.setExperiences(experienceBlocks);
             data.setProjects(projectBlocks);
+            data.setSkills(skillsBlocks);
+            data.setEducation(educationBlocks);
 
             return data;
         } catch (Exception e) {
@@ -89,10 +110,20 @@ public class ResumeBlockService {
             List<Project> projects = projectService.getAllProjects(user.getUsername());
             List<ResumeBlock> projectBlocks = convertProjectsToResumeBlocks(projects);
 
+            // Load skills from database
+            List<Skill> skills = skillService.getAllSkills(user.getUsername());
+            List<SkillsBlock> skillsBlocks = convertSkillsToSkillsBlocks(skills);
+
+            // Load education from database
+            List<Education> education = educationService.getAllEducation(user.getUsername());
+            List<EducationBlock> educationBlocks = convertEducationToEducationBlocks(education);
+
             // Create ResumeData object
             ResumeData data = new ResumeData();
             data.setExperiences(experienceBlocks);
             data.setProjects(projectBlocks);
+            data.setSkills(skillsBlocks);
+            data.setEducation(educationBlocks);
 
             return data;
         } catch (Exception e) {
@@ -179,6 +210,59 @@ public class ResumeBlockService {
         );
 
         return block;
+    }
+
+    /**
+     * Convert Skill list to SkillsBlock list
+     */
+    private List<SkillsBlock> convertSkillsToSkillsBlocks(List<Skill> skills) {
+        if (skills == null || skills.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // Group skills by category
+        Map<String, List<Skill>> skillsByCategory = skills.stream()
+                .collect(Collectors.groupingBy(Skill::getCategory));
+        
+        List<SkillsBlock> skillsBlocks = new ArrayList<>();
+        
+        for (Map.Entry<String, List<Skill>> entry : skillsByCategory.entrySet()) {
+            String category = entry.getKey();
+            List<Skill> categorySkills = entry.getValue();
+            
+            // Sort by order index
+            categorySkills.sort((s1, s2) -> Integer.compare(s1.getOrderIndex(), s2.getOrderIndex()));
+            
+            // Extract skill names
+            List<String> skillNames = categorySkills.stream()
+                    .map(Skill::getSkillName)
+                    .collect(Collectors.toList());
+            
+            SkillsBlock block = new SkillsBlock("skills-" + category, category, skillNames);
+            skillsBlocks.add(block);
+        }
+        
+        return skillsBlocks;
+    }
+
+    /**
+     * Convert Education list to EducationBlock list
+     */
+    private List<EducationBlock> convertEducationToEducationBlocks(List<Education> education) {
+        if (education == null || education.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        return education.stream()
+                .map(edu -> new EducationBlock(
+                    edu.getId().toString(),
+                    edu.getDegree(),
+                    edu.getInstitution(),
+                    edu.getDateRange(),
+                    edu.getGpa(),
+                    edu.getLocation()
+                ))
+                .collect(Collectors.toList());
     }
 
     /**

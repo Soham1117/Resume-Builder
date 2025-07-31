@@ -3,13 +3,16 @@ package com.resume.service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import com.resume.model.EducationBlock;
 import com.resume.model.ExperienceProject;
 import com.resume.model.ResumeBlock;
 import com.resume.model.ResumeData;
+import com.resume.model.SkillsBlock;
 
 @Service
 public class LaTeXService {
@@ -35,9 +38,17 @@ public class LaTeXService {
             // Generate projects section
             String projectsLatex = generateProjectLatex(resumeData.getProjects());
             
+            // Generate skills section
+            String skillsLatex = generateSkillsLatex(resumeData.getSkills());
+            
+            // Generate education section
+            String educationLatex = generateEducationLatex(resumeData.getEducation());
+            
             // Replace section placeholders
             template = template.replace("{{EXPERIENCE_SECTION}}", experienceLatex);
             template = template.replace("{{PROJECTS_SECTION}}", projectsLatex);
+            template = template.replace("{{SKILLS_SECTION}}", skillsLatex);
+            template = template.replace("{{EDUCATION_SECTION}}", educationLatex);
             
             return template;
             
@@ -49,6 +60,75 @@ public class LaTeXService {
     private String loadTemplate() throws IOException {
         ClassPathResource resource = new ClassPathResource("jx_template.tex");
         return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    public String generateEducationLatex(List<EducationBlock> educationBlocks) {
+        if (educationBlocks == null || educationBlocks.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder latex = new StringBuilder();
+        
+        for (EducationBlock education : educationBlocks) {
+            // Start the education item
+            latex.append("\\item\n");
+            
+            // Add institution and location
+            String institution = education.getInstitution();
+            String location = education.getLocation();
+            
+            if (location != null && !location.trim().isEmpty()) {
+                latex.append("\\begin{tabular*}{1.0\\textwidth}[b]{l@{\\extracolsep{\\fill}}r}\n");
+                latex.append("\\textbf{").append(escapeLatex(institution)).append("} $|$ \\small{").append(escapeLatex(location)).append("} & ").append(escapeLatex(education.getDateRange())).append("\n");
+                latex.append("\\end{tabular*}\n");
+            } else {
+                latex.append("\\begin{tabular*}{1.0\\textwidth}[b]{l@{\\extracolsep{\\fill}}r}\n");
+                latex.append("\\textbf{").append(escapeLatex(institution)).append("} & ").append(escapeLatex(education.getDateRange())).append("\n");
+                latex.append("\\end{tabular*}\n");
+            }
+            
+            // Add degree and GPA
+            String degree = education.getDegree();
+            String gpa = education.getGpa();
+            
+            if (gpa != null && !gpa.trim().isEmpty()) {
+                latex.append("\\begin{tabular*}{1.0\\textwidth}[b]{l@{\\extracolsep{\\fill}}r}\n");
+                latex.append("\\textit{\\small ").append(escapeLatex(degree)).append("} & \\textit{\\small GPA: ").append(escapeLatex(gpa)).append("}\n");
+                latex.append("\\end{tabular*}\n");
+            } else {
+                latex.append("\\begin{tabular*}{1.0\\textwidth}[b]{l@{\\extracolsep{\\fill}}r}\n");
+                latex.append("\\textit{\\small ").append(escapeLatex(degree)).append("} & {}\n");
+                latex.append("\\end{tabular*}\n");
+            }
+        }
+        
+        return latex.toString();
+    }
+
+    public String generateSkillsLatex(List<SkillsBlock> skillsBlocks) {
+        if (skillsBlocks == null || skillsBlocks.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder latex = new StringBuilder();
+        
+        for (SkillsBlock block : skillsBlocks) {
+            String category = block.getCategory();
+            List<String> skills = block.getSkills();
+            
+            if (skills != null && !skills.isEmpty()) {
+                // Create comma-separated list of skills for this category
+                String skillList = skills.stream()
+                        .map(this::escapeLatex)
+                        .collect(Collectors.joining(", "));
+                
+                // Generate LaTeX for this category
+                latex.append("\\bulletItem{\\textbf{").append(escapeLatex(category)).append(":} ").append(skillList).append("}\n");
+                latex.append("\\vspace{\\vspaceAfterBullets}\n");
+            }
+        }
+        
+        return latex.toString();
     }
 
     private String generateExperienceLatex(List<ResumeBlock> experiences) {

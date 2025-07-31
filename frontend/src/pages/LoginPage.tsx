@@ -6,7 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { apiService } from "../services/api";
 import { toast } from "react-hot-toast";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Copy, Check } from "lucide-react";
 
 const schema = yup
   .object({
@@ -20,6 +20,7 @@ type LoginFormData = yup.InferType<typeof schema>;
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -30,6 +31,17 @@ const LoginPage: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: yupResolver(schema),
   });
+
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      toast.success(`${field} copied to clipboard!`);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      toast.error("Failed to copy to clipboard");
+    }
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -114,6 +126,61 @@ const LoginPage: React.FC = () => {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Demo Credentials */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">
+              🎉 Try the Demo Account
+            </h3>
+            <p className="text-xs text-blue-700 mb-3">
+              Experience the full resume builder with pre-populated sample data:
+            </p>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-blue-800">Username:</span>
+                <div className="flex items-center space-x-2">
+                  <code className="bg-blue-100 px-2 py-1 rounded text-blue-900">
+                    testuser
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard("testuser", "Username")}
+                    className="p-1 hover:bg-blue-200 rounded transition-colors"
+                    title="Copy username"
+                  >
+                    {copiedField === "Username" ? (
+                      <Check className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-blue-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-blue-800">Password:</span>
+                <div className="flex items-center space-x-2">
+                  <code className="bg-blue-100 px-2 py-1 rounded text-blue-900">
+                    test123
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard("test123", "Password")}
+                    className="p-1 hover:bg-blue-200 rounded transition-colors"
+                    title="Copy password"
+                  >
+                    {copiedField === "Password" ? (
+                      <Check className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-blue-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-blue-600 mt-2">
+              Click the copy icons to copy credentials to clipboard!
+            </p>
           </div>
 
           <div>

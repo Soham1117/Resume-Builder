@@ -22,10 +22,14 @@ import CertificationsForm from "../components/forms/CertificationsForm";
 import ExperienceForm from "../components/forms/ExperienceForm";
 import ProjectForm from "../components/forms/ProjectForm";
 import DraggableItem from "../components/dragdrop/DraggableItem";
+import DemoWalkthrough from "../components/DemoWalkthrough";
+import DemoRestartButton from "../components/DemoRestartButton";
+import DemoWelcomeMessage from "../components/DemoWelcomeMessage";
 import { useApi } from "../hooks/useApi";
 import { useDragAndDrop } from "../hooks/useDragAndDrop";
 import { useDataPersistence } from "../hooks/useDataPersistence";
 import { useAuth } from "../hooks/useAuth";
+import { useDemo } from "../context/DemoContext";
 import { transformResumeBlocksToContentItems } from "../utils/dataTransform";
 import type {
   ContentItem,
@@ -111,6 +115,9 @@ const ResumeBuilderPage: React.FC = () => {
 
   // Drag and drop functionality
   const { dragState, startDrag, endDrag } = useDragAndDrop();
+
+  // Demo functionality
+  const { isDemoActive, currentStep, demoSteps } = useDemo();
 
   // Data persistence hook - moved before conversion functions
   const {
@@ -342,6 +349,13 @@ const ResumeBuilderPage: React.FC = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [analysisResult, handleLoadData, handleClearAnalysis]);
+
+  // Auto-switch sections during demo
+  useEffect(() => {
+    if (isDemoActive && demoSteps[currentStep]?.targetSection) {
+      setActiveSection(demoSteps[currentStep].targetSection!);
+    }
+  }, [isDemoActive, currentStep, demoSteps]);
 
   // Handler functions
   const handleExport = () => {
@@ -1231,6 +1245,11 @@ const ResumeBuilderPage: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* Demo Components */}
+      <DemoWelcomeMessage />
+      <DemoWalkthrough />
+      <DemoRestartButton />
     </div>
   );
 };

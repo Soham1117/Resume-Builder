@@ -161,7 +161,21 @@ if [ ! -f "pom.xml" ]; then
     exit 1
 fi
 
-mvn clean package -DskipTests
+# Set Maven options for better performance
+export MAVEN_OPTS="-Xmx2g -Xms1g -XX:+UseG1GC"
+
+print_status "Running Maven build (this may take a few minutes)..."
+print_status "Maven options: $MAVEN_OPTS"
+
+# Run Maven with timeout
+timeout 300 mvn clean package -DskipTests
+
+if [ $? -eq 124 ]; then
+    print_error "Maven build timed out after 5 minutes"
+    print_error "This might be due to network issues or large dependencies"
+    print_status "Trying with offline mode..."
+    mvn clean package -DskipTests -o
+fi
 
 # Check if build was successful
 if [ ! -f "target/resume-updater-1.0.0.jar" ]; then

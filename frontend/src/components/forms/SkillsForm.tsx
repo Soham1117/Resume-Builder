@@ -82,7 +82,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({
 
       setEditingId(null);
       setFormData({});
-      
+
       // Trigger data loading after successful save
       if (onSaveComplete) {
         onSaveComplete();

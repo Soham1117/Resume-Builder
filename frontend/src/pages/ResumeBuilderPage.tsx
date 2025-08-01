@@ -9,6 +9,8 @@ import {
   Eye,
   Lightbulb,
   X,
+  Plus,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Sidebar from "../components/layout/Sidebar";
@@ -106,6 +108,7 @@ const ResumeBuilderPage: React.FC = () => {
   const [suggestedProjects, setSuggestedProjects] = useState<ContentItem[]>([]);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const [temporarySkills, setTemporarySkills] = useState<string[]>([]);
 
   // API hook
   const { getResumeBlocks } = useApi();
@@ -225,6 +228,15 @@ const ResumeBuilderPage: React.FC = () => {
       return acc;
     }, {} as Record<string, string[]>);
 
+    // Append temporary skills to existing "Skills & Technologies" category or create it
+    if (temporarySkills.length > 0) {
+      if (skillsByCategory["Skills & Technologies"]) {
+        skillsByCategory["Skills & Technologies"] = [...skillsByCategory["Skills & Technologies"], ...temporarySkills];
+      } else {
+        skillsByCategory["Skills & Technologies"] = temporarySkills;
+      }
+    }
+
     return Object.entries(skillsByCategory).map(
       ([category, skillList], index) => ({
         id: `skills-${index}`,
@@ -254,6 +266,7 @@ const ResumeBuilderPage: React.FC = () => {
     setSuggestedExperiences([]);
     setSuggestedProjects([]);
     setAnalysis(null);
+    setTemporarySkills([]); // Clear temporary skills
 
     // Clear job analysis session from localStorage
     saveJobAnalysisSession(null);
@@ -436,10 +449,38 @@ const ResumeBuilderPage: React.FC = () => {
     setSuggestedProjects(result.selectedProjects);
     setAnalysis(result.analysis);
 
+    // Reset temporary skills for new job analysis
+    setTemporarySkills([]);
+
     // Save job analysis session to localStorage
     saveJobAnalysisSession(result);
 
     toast.success("Job analysis completed!");
+  };
+
+  // Handle adding temporary skills (not saved to database)
+  const handleAddTemporarySkill = (skillName: string) => {
+    if (!temporarySkills.includes(skillName)) {
+      setTemporarySkills([...temporarySkills, skillName]);
+      toast.success(`${skillName} added to resume`);
+    } else {
+      toast.success(`${skillName} is already added`);
+    }
+  };
+
+  const handleAddAllTemporarySkills = () => {
+    if (analysis?.suggestedSkills) {
+      const newSkills = analysis.suggestedSkills.filter(
+        (skill) => !temporarySkills.includes(skill)
+      );
+      setTemporarySkills([...temporarySkills, ...newSkills]);
+      toast.success(`${newSkills.length} skills added to resume`);
+    }
+  };
+
+  const handleRemoveTemporarySkill = (skillName: string) => {
+    setTemporarySkills(temporarySkills.filter((skill) => skill !== skillName));
+    toast.success(`${skillName} removed from resume`);
   };
 
   // Helper function to update analysis result when suggestions change
@@ -682,6 +723,81 @@ const ResumeBuilderPage: React.FC = () => {
                   </div>
                 </DropZone>
               </div>
+
+              {/* Suggested Skills Section */}
+              {analysis?.suggestedSkills && analysis.suggestedSkills.length > 0 && (
+                <div className="mt-6">
+                  <Card className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Suggested Skills from Job Analysis
+                      </h3>
+                      <button
+                        onClick={handleAddAllTemporarySkills}
+                        className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
+                      >
+                        Add All to Resume
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      These technical skills were identified from the job description and can be added to your resume for this specific application.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.suggestedSkills.map((skillName, index) => (
+                        <div
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm"
+                        >
+                          <span>{skillName}</span>
+                          <button
+                            onClick={() => handleAddTemporarySkill(skillName)}
+                            className="ml-2 text-green-600 hover:text-green-800"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Temporary Skills Section */}
+              {temporarySkills.length > 0 && (
+                <div className="mt-6">
+                  <Card className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <Code className="h-4 w-4 mr-2" />
+                        Skills Added to Resume
+                      </h3>
+                      <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                        Will be included in PDF
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      These skills have been added to your resume for this specific job application and will be included in the PDF.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {temporarySkills.map((skillName, index) => (
+                        <div
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                        >
+                          <span>{skillName}</span>
+                          <button
+                            onClick={() => handleRemoveTemporarySkill(skillName)}
+                            className="ml-2 text-blue-600 hover:text-blue-800"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              )}
 
               {analysisResult && (
                 <Card className="mt-6">

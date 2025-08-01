@@ -208,6 +208,7 @@ const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
               <li>Relevant experience templates</li>
               <li>Matching project examples</li>
               <li>Key skills and technologies</li>
+              <li>Missing skills to add to your profile</li>
               <li>Action verbs and achievements</li>
             </ul>
           </div>

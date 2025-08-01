@@ -216,6 +216,7 @@ export interface JobDescriptionRequest {
 export interface AnalysisResult {
   keySkills: string[];
   suggestedTechnologies: string[];
+  suggestedSkills: string[];
   recommendations: string;
   matchScore: number;
 }
@@ -682,10 +683,7 @@ class ApiService {
       if (experience.technologies && experience.technologies.length > 0) {
         for (const tech of experience.technologies) {
           promises.push(
-            this.addTechnologyToExperience(
-              savedExperience.id!,
-              tech.technology
-            )
+            this.addTechnologyToExperience(savedExperience.id!, tech.technology)
           );
         }
       }

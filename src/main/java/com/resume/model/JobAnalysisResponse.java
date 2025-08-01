@@ -1,7 +1,8 @@
 package com.resume.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class JobAnalysisResponse {
     
@@ -69,6 +70,9 @@ public class JobAnalysisResponse {
         @JsonProperty("suggestedTechnologies")
         private List<String> suggestedTechnologies;
         
+        @JsonProperty("suggestedSkills")
+        private List<String> suggestedSkills;
+        
         @JsonProperty("recommendations")
         private String recommendations;
         
@@ -78,9 +82,10 @@ public class JobAnalysisResponse {
         public AnalysisResult() {}
         
         public AnalysisResult(List<String> keySkills, List<String> suggestedTechnologies, 
-                            String recommendations, double matchScore) {
+                            List<String> suggestedSkills, String recommendations, double matchScore) {
             this.keySkills = keySkills;
             this.suggestedTechnologies = suggestedTechnologies;
+            this.suggestedSkills = suggestedSkills;
             this.recommendations = recommendations;
             this.matchScore = matchScore;
         }
@@ -100,6 +105,14 @@ public class JobAnalysisResponse {
         
         public void setSuggestedTechnologies(List<String> suggestedTechnologies) {
             this.suggestedTechnologies = suggestedTechnologies;
+        }
+        
+        public List<String> getSuggestedSkills() {
+            return suggestedSkills;
+        }
+        
+        public void setSuggestedSkills(List<String> suggestedSkills) {
+            this.suggestedSkills = suggestedSkills;
         }
         
         public String getRecommendations() {

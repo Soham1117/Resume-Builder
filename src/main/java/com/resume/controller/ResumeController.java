@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -38,6 +39,9 @@ public class ResumeController {
 
     @Autowired
     private PersonalInfoService personalInfoService;
+
+    @Autowired
+    private SkillService skillService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -148,6 +152,20 @@ public class ResumeController {
         @SuppressWarnings("unchecked")
         List<String> technologies = (List<String>) llmAnalysis.getOrDefault("technologies", new ArrayList<>());
       
+        // Get user's existing skills
+        String username = getCurrentUsername();
+        List<Skill> existingSkills = skillService.getAllSkills(username);
+        Set<String> existingSkillNames = existingSkills.stream()
+            .map(Skill::getSkillName)
+            .map(String::toLowerCase)
+            .collect(Collectors.toSet());
+        
+        // Find skills from job description that user doesn't have
+        List<String> suggestedSkills = skills.stream()
+            .filter(skill -> !existingSkillNames.contains(skill.toLowerCase()))
+            .distinct()
+            .collect(Collectors.toList());
+      
         // Calculate match score
         double matchScore = calculateMatchScore(selectedExperiences, selectedProjects, skills);
         
@@ -157,6 +175,7 @@ public class ResumeController {
         return new JobAnalysisResponse.AnalysisResult(
             skills,
             technologies,
+            suggestedSkills,
             recommendations,
             matchScore
         );

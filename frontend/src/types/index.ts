@@ -265,6 +265,7 @@ export interface ResumeTemplate {
 export interface AnalysisResult {
   keySkills: string[];
   suggestedTechnologies: string[];
+  suggestedSkills: string[];
   recommendations: string;
   matchScore: number;
 }

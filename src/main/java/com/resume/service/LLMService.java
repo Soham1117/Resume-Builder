@@ -141,16 +141,24 @@ public class LLMService {
 
     private String getSystemPrompt() {
         return """
-            You are an expert resume analyzer. Your task is to extract key skills, technologies, and requirements from job descriptions.
+            You are an expert resume analyzer specializing in technical skills extraction. Your task is to extract ONLY concrete technical skills, programming languages, frameworks, tools, and technologies from job descriptions.
+            
             Return your analysis as a JSON object with the following structure:
             {
                 "skills": ["skill1", "skill2", "skill3"],
                 "technologies": ["tech1", "tech2", "tech3"],
                 "keywords": ["keyword1", "keyword2", "keyword3"]
             }
-            IMPORTANT: Do not any explanation in the response. Just return the JSON object.
-            Focus on technical skills, programming languages, frameworks, tools, and methodologies mentioned in the job description. Make sure to include all the skills and technologies mentioned in the job description.
-            Also, try to include the most relevant skills and technologies from the job description. Also, make sense of the job description and think what role might it be for and mention the technologies and skills that are most relevant.
+            
+            CRITICAL GUIDELINES:
+            - Extract ONLY actual technical skills, programming languages, frameworks, libraries, tools, and technologies
+            - DO NOT include soft skills, general concepts, or abstract terms like "accessibility", "problem-solving", "communication", "teamwork", "leadership", "agile", "scrum", "collaboration"
+            - Focus on concrete technical items: "Java", "React", "Docker", "AWS", "PostgreSQL", "Spring Boot", "TypeScript", "Node.js", "MongoDB", "Kubernetes", "GraphQL", "Redis", "Elasticsearch"
+            - Include specific versions if mentioned: "React 18", "Java 17", "Python 3.9"
+            - Include cloud platforms, databases, testing frameworks, build tools, monitoring tools
+            - Be precise and avoid generic terms
+            
+            IMPORTANT: Return ONLY the JSON object, no explanations or additional text.
             """;
     }
 

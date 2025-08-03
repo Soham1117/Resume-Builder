@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .addHeaderWriter((request, response) -> {
                     // Apply CSP to allow iframe embedding from localhost:5173
                     response.setHeader("Content-Security-Policy", "frame-ancestors http://localhost:5173");
+                    response.setHeader("Content-Security-Policy", "frame-ancestors http://aetherdash.xyz");
                 })
             )
             .authorizeHttpRequests(authz -> authz

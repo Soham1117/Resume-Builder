@@ -36,7 +36,7 @@ public class SecurityConfig {
             .headers(headers -> headers
                 .frameOptions(frame -> frame.disable()) // Disables X-Frame-Options header
                 .addHeaderWriter((request, response) -> {
-                    response.setHeader("Content-Security-Policy", "frame-ancestors http://localhost:5173 https://aetherdash.xyz");
+                    response.setHeader("Content-Security-Policy", "frame-ancestors http://localhost:5173 https://aetherdash.xyz https://resumiq.netlify.app");
                 })
             )
             .authorizeHttpRequests(authz -> authz

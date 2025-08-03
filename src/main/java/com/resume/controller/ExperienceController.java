@@ -78,8 +78,8 @@ public class ExperienceController {
     public ResponseEntity<Experience> saveExperience(@RequestBody Experience experience) {
         try {
             String username = getCurrentUsername();
-            System.out.println("Saving experience for user: " + username);
-            System.out.println("Experience data: " + experience);
+            
+            
             
             if (experience.getTitle() == null || experience.getTitle().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(null);

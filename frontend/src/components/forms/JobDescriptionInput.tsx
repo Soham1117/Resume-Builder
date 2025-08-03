@@ -10,12 +10,16 @@ interface JobDescriptionInputProps {
   onAnalyze?: (description: string) => void;
   onClear?: () => void;
   onAnalysisComplete?: (result: JobAnalysisResponse) => void;
+  onGenerateCoverLetter?: (jobDescription: string, jobTitle: string, companyName: string) => void;
+  isGeneratingCoverLetter?: boolean;
 }
 
 const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
   onAnalyze,
   onClear,
   onAnalysisComplete,
+  onGenerateCoverLetter,
+  isGeneratingCoverLetter = false,
 }) => {
   const [jobDescription, setJobDescription] = useState(() => {
     // Initialize from localStorage if available
@@ -27,6 +31,8 @@ const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
       return "";
     }
   });
+  const [jobTitle, setJobTitle] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const {
     analyzeJobDescription,
     checkConnection,
@@ -188,19 +194,66 @@ const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
 
       {jobDescription && (
         <div className="space-y-3">
-          <Button
-            onClick={handleAnalyze}
-            loading={isLoading}
-            disabled={
-              !jobDescription.trim() || isLoading || isConnected === false
-            }
-            className="w-full flex items-center justify-center space-x-2"
-          >
-            <Sparkles className="h-4 w-4" />
-            <span>
-              {isLoading ? "Analyzing..." : "Analyze & Suggest Content"}
-            </span>
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Job Title
+              </label>
+              <input
+                type="text"
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+                placeholder="e.g., Senior Software Engineer"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Company Name
+              </label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g., Google, Microsoft"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={handleAnalyze}
+              loading={isLoading}
+              disabled={
+                !jobDescription.trim() || isLoading || isConnected === false
+              }
+              className="flex-1 flex items-center justify-center space-x-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>
+                {isLoading ? "Analyzing..." : "Analyze & Suggest Content"}
+              </span>
+            </Button>
+
+            {onGenerateCoverLetter && jobTitle && companyName && (
+              <Button
+                onClick={() => onGenerateCoverLetter(jobDescription, jobTitle, companyName)}
+                loading={isGeneratingCoverLetter}
+                disabled={
+                  !jobDescription.trim() || !jobTitle.trim() || !companyName.trim() || 
+                  isGeneratingCoverLetter || isConnected === false
+                }
+                variant="outline"
+                className="flex items-center justify-center space-x-2"
+              >
+                <FileText className="h-4 w-4" />
+                <span>
+                  {isGeneratingCoverLetter ? "Generating..." : "Generate Cover Letter"}
+                </span>
+              </Button>
+            )}
+          </div>
 
           <div className="text-xs text-gray-600 space-y-1">
             <p>✨ We'll analyze the job description and suggest:</p>
@@ -210,6 +263,7 @@ const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
               <li>Key skills and technologies</li>
               <li>Missing skills to add to your profile</li>
               <li>Action verbs and achievements</li>
+              <li>Generate a personalized cover letter</li>
             </ul>
           </div>
         </div>

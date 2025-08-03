@@ -5,6 +5,8 @@ import type {
   CacheStats,
   GenerateResumeRequest,
   GenerateResumeResponse,
+  CoverLetterRequest,
+  CoverLetterResponse,
 } from "../services/api";
 import type { ResumeBlock } from "../utils/dataTransform";
 import toast from "react-hot-toast";
@@ -195,6 +197,30 @@ export const useApi = () => {
     []
   );
 
+  // Generate cover letter
+  const generateCoverLetter = useCallback(
+    async (
+      request: CoverLetterRequest
+    ): Promise<CoverLetterResponse | null> => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await apiService.generateCoverLetter(request);
+        return result;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to generate cover letter";
+        setError(errorMessage);
+        toast.error(errorMessage);
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   // Test LaTeX generation
   const testLatexGeneration = useCallback(async (): Promise<string | null> => {
     setIsLoading(true);
@@ -261,6 +287,7 @@ export const useApi = () => {
     analyzeJobDescription,
     getResumeBlocks,
     generateResume,
+    generateCoverLetter,
     testLatexGeneration,
     getCacheStats,
     clearCache,

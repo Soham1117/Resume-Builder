@@ -31,19 +31,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtRequestFilter jwtRequestFilter) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for JWT
+            .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
             .headers(headers -> headers
-                .frameOptions(frame -> frame.deny()) // Default: deny all frames
+                .frameOptions(frame -> frame.disable()) // Disables X-Frame-Options header
                 .addHeaderWriter((request, response) -> {
-                    // Allow iframe embedding for public PDF endpoints
-                    if (request.getRequestURI().startsWith("/api/resume/pdf/public/")) {
-                        response.setHeader("X-Frame-Options", "ALLOWALL");
-                    }
+                    // Apply CSP to allow iframe embedding from localhost:5173
+                    response.setHeader("Content-Security-Policy", "frame-ancestors http://localhost:5173");
                 })
             )
             .authorizeHttpRequests(authz -> authz
-                // Development: allow all requests
                 .anyRequest().permitAll()
             )
             .sessionManagement(session -> session

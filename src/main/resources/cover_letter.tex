@@ -1,0 +1,144 @@
+%-------------------------
+% Cover Letter in LaTeX
+% Author : Resume Builder
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+% set margins for letter format
+\usepackage[
+    left=1in,
+    right=1in,
+    top=1in,
+    bottom=1in,
+]{geometry}
+
+\usepackage{latexsym}
+\usepackage{titlesec}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{hyphenat}
+\usepackage{fontawesome}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{etoolbox}
+\usepackage{csquotes}
+
+\usepackage{tgtermes}
+\renewcommand{\familydefault}{\rmdefault}
+
+\urlstyle{same}
+
+% don't stretch text to fill the entire line
+\raggedbottom
+\raggedright
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+% Set line spacing
+\linespread{1.15}
+\setlength{\parskip}{6pt}
+
+% Custom commands
+\newcommand{\letterhead}[1]{
+    \begin{center}
+        \textbf{\Large #1}
+    \end{center}
+}
+
+\newcommand{\letterinfo}[4]{
+    \begin{flushleft}
+        #1 \\
+        #2 \\
+        #3 \\
+        #4
+    \end{flushleft}
+}
+
+\newcommand{\letterdate}[1]{
+    \begin{flushleft}
+        #1
+    \end{flushleft}
+}
+
+\newcommand{\lettergreeting}[1]{
+    \begin{flushleft}
+        Dear #1,
+    \end{flushleft}
+}
+
+\newcommand{\letterclosing}[1]{
+    \begin{flushleft}
+        Sincerely, \\
+        #1
+    \end{flushleft}
+}
+
+%-------------------------------------------
+%%%%%%  COVER LETTER STARTS HERE  %%%%%%%%%%%
+\begin{document}
+
+%---------- HEADER ----------
+\letterhead{{{CANDIDATE_NAME}}}
+
+%---------- CANDIDATE INFO ----------
+\begin{flushleft}
+{{CANDIDATE_EMAIL}} \\
+{{CANDIDATE_PHONE}} \\
+{{CANDIDATE_LOCATION}} \\
+linkedin.com/in/{{CANDIDATE_LINKEDIN}}
+\end{flushleft}
+
+%---------- DATE ----------
+\begin{flushleft}
+{{LETTER_DATE}}
+\end{flushleft}
+
+%---------- COMPANY INFO ----------
+\begin{flushleft}
+{{COMPANY_NAME}} \\
+{{COMPANY_ADDRESS}} \\
+{{COMPANY_CITY_STATE_ZIP}}
+\end{flushleft}
+
+%---------- GREETING ----------
+\begin{flushleft}
+Dear {{HIRING_MANAGER}},
+\end{flushleft}
+
+\vspace{0.5cm}
+
+%---------- OPENING PARAGRAPH ----------
+{{OPENING_PARAGRAPH}}
+
+\vspace{0.3cm}
+
+%---------- BODY PARAGRAPH 1 ----------
+{{BODY_PARAGRAPH_1}}
+
+\vspace{0.3cm}
+
+%---------- BODY PARAGRAPH 2 ----------
+{{BODY_PARAGRAPH_2}}
+
+\vspace{0.3cm}
+
+%---------- CLOSING PARAGRAPH ----------
+{{CLOSING_PARAGRAPH}}
+
+\vspace{0.5cm}
+
+%---------- CLOSING ----------
+\begin{flushleft}
+Sincerely, \\
+{{CANDIDATE_NAME}}
+\end{flushleft}
+
+%-------------------------------------------
+\end{document}

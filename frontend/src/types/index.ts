@@ -275,4 +275,28 @@ export interface JobAnalysisResponse {
   selectedProjects: ContentItem[];
   analysis: AnalysisResult;
   latexContent: string;
+}
+
+// Cover Letter Types
+export interface CoverLetterRequest {
+  jobDescription: string;
+  jobTitle: string;
+  companyName: string;
+  companyAddress?: string;
+  companyCityStateZip?: string;
+  hiringManager?: string;
+  candidateName?: string;
+  candidateEmail?: string;
+  candidatePhone?: string;
+  candidateLocation?: string;
+  candidateLinkedIn?: string;
+  candidatePortfolio?: string;
+}
+
+export interface CoverLetterResponse {
+  coverLetterContent: string;
+  pdfFilePath: string;
+  fileName: string;
+  success: boolean;
+  errorMessage?: string;
 } 

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import com.resume.model.CoverLetterData;
 import com.resume.model.EducationBlock;
 import com.resume.model.ExperienceProject;
 import com.resume.model.ResumeBlock;
@@ -59,6 +60,11 @@ public class LaTeXService {
 
     private String loadTemplate() throws IOException {
         ClassPathResource resource = new ClassPathResource("jx_template.tex");
+        return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    private String loadCoverLetterTemplate() throws IOException {
+        ClassPathResource resource = new ClassPathResource("cover_letter.tex");
         return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
     }
 
@@ -210,8 +216,6 @@ public class LaTeXService {
                     icon = "\\faGithub";
                 } else if (link.contains("linkedin.com")) {
                     icon = "\\faLinkedin";
-                } else if (link.contains("figma.com")) {
-                    icon = "\\faFigma";
                 } else if (link.contains("drive.google.com") || link.contains("springer.com") || link.contains("netlify.app")) {
                     icon = "\\faLink";
                 } else {
@@ -259,5 +263,39 @@ public class LaTeXService {
                 .replace("_", "\\_")
                 .replace("~", "\\~{}")
                 .replace("%", "\\%");
+    }
+
+    public String generateCoverLetter(CoverLetterData coverLetterData) {
+        try {
+            String template = loadCoverLetterTemplate();
+            
+            // Replace candidate information placeholders with safe defaults
+            template = template.replace("{{CANDIDATE_NAME}}", escapeLatex(coverLetterData.getCandidateName() != null ? coverLetterData.getCandidateName() : ""));
+            template = template.replace("{{CANDIDATE_EMAIL}}", escapeLatex(coverLetterData.getCandidateEmail() != null ? coverLetterData.getCandidateEmail() : ""));
+            template = template.replace("{{CANDIDATE_PHONE}}", escapeLatex(coverLetterData.getCandidatePhone() != null ? coverLetterData.getCandidatePhone() : ""));
+            template = template.replace("{{CANDIDATE_LOCATION}}", escapeLatex(coverLetterData.getCandidateLocation() != null ? coverLetterData.getCandidateLocation() : ""));
+            template = template.replace("{{CANDIDATE_LINKEDIN}}", escapeLatex(coverLetterData.getCandidateLinkedIn() != null ? coverLetterData.getCandidateLinkedIn() : ""));
+            template = template.replace("{{CANDIDATE_PORTFOLIO}}", escapeLatex(coverLetterData.getCandidatePortfolio() != null ? coverLetterData.getCandidatePortfolio() : ""));
+            
+            // Replace company information placeholders with safe defaults
+            template = template.replace("{{COMPANY_NAME}}", escapeLatex(coverLetterData.getCompanyName() != null ? coverLetterData.getCompanyName() : ""));
+            template = template.replace("{{COMPANY_ADDRESS}}", escapeLatex(coverLetterData.getCompanyAddress() != null ? coverLetterData.getCompanyAddress() : ""));
+            template = template.replace("{{COMPANY_CITY_STATE_ZIP}}", escapeLatex(coverLetterData.getCompanyCityStateZip() != null ? coverLetterData.getCompanyCityStateZip() : ""));
+            template = template.replace("{{HIRING_MANAGER}}", escapeLatex(coverLetterData.getHiringManager() != null ? coverLetterData.getHiringManager() : "Hiring Manager"));
+            
+            // Replace date placeholder
+            template = template.replace("{{LETTER_DATE}}", escapeLatex(coverLetterData.getLetterDate() != null ? coverLetterData.getLetterDate() : ""));
+            
+            // Replace content placeholders with safe defaults
+            template = template.replace("{{OPENING_PARAGRAPH}}", escapeLatex(coverLetterData.getOpeningParagraph() != null ? coverLetterData.getOpeningParagraph() : ""));
+            template = template.replace("{{BODY_PARAGRAPH_1}}", escapeLatex(coverLetterData.getBodyParagraph1() != null ? coverLetterData.getBodyParagraph1() : ""));
+            template = template.replace("{{BODY_PARAGRAPH_2}}", escapeLatex(coverLetterData.getBodyParagraph2() != null ? coverLetterData.getBodyParagraph2() : ""));
+            template = template.replace("{{CLOSING_PARAGRAPH}}", escapeLatex(coverLetterData.getClosingParagraph() != null ? coverLetterData.getClosingParagraph() : ""));
+            
+            return template;
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to generate LaTeX cover letter", e);
+        }
     }
 } 

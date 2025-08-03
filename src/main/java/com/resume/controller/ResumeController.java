@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.resume.model.*;
 import com.resume.service.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +49,64 @@ public class ResumeController {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @PostMapping("/cover-letter/generate")
+    public ResponseEntity<CoverLetterResponse> generateCoverLetter(@Valid @RequestBody CoverLetterRequest request) {
+        try {
+            String username = getCurrentUsername();
+            
+            // Get personal information from database
+            PersonalInfo personalInfo = personalInfoService.getPersonalInfo(username);
+            if (personalInfo == null) {
+                return ResponseEntity.badRequest().body(new CoverLetterResponse("Personal information not found"));
+            }
+            
+            // Build candidate background from resume data
+            ResumeData resumeData = resumeBlockService.loadResumeBlocks(username);
+            String candidateBackground = buildCandidateBackground(resumeData, personalInfo);
+            
+            // Generate cover letter content using LLM
+            String llmResponse = llmService.generateCoverLetterContent(
+                request.getJobDescription(), 
+                request.getJobTitle(), 
+                request.getCompanyName(), 
+                candidateBackground
+            );
+            
+            // Parse LLM response
+            Map<String, Object> coverLetterContent = parseCoverLetterResponse(llmResponse);
+            
+            // Create cover letter data
+            CoverLetterData coverLetterData = createCoverLetterData(request, personalInfo, coverLetterContent);
+            
+            // Generate LaTeX cover letter
+            String latexContent = latexService.generateCoverLetter(coverLetterData);
+            
+            // Generate PDF - use a descriptive name for the candidate
+            String candidateName = personalInfo.getName() + "_" + request.getCompanyName() + "_CoverLetter";
+            String pdfFilePath = pdfService.generatePDFFromLatex(latexContent, candidateName);
+            
+            // Extract the filename from the path
+            String fileName;
+            if (pdfFilePath.contains("/")) {
+                fileName = pdfFilePath.substring(pdfFilePath.lastIndexOf('/') + 1);
+            } else {
+                fileName = pdfFilePath; // Fallback if no path separator
+            }
+            
+            // Debug logging
+            
+            
+            
+            
+            
+            return ResponseEntity.ok(new CoverLetterResponse(latexContent, pdfFilePath, fileName));
+            
+        } catch (IOException e) {
+            System.err.println("Cover letter generation error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(new CoverLetterResponse("Failed to generate cover letter: " + e.getMessage()));
+        }
+    }
+
     @PostMapping("/analyze")
     public ResponseEntity<JobAnalysisResponse> analyzeJobDescription(@Valid @RequestBody JobDescriptionRequest request) {
         try {
@@ -53,7 +114,7 @@ public class ResumeController {
             
             // Get LLM analysis of job description
             String llmResponse = llmService.analyzeJobDescription(request.getJobDescription());
-            System.out.println("LLM Response: " + llmResponse);
+            
             // Parse LLM response to extract skills, technologies, and keywords
             Map<String, Object> llmAnalysis = parseLLMResponse(llmResponse);
         
@@ -316,7 +377,8 @@ public class ResumeController {
                 resumeData, request.getCandidateName(), request.getCandidateEmail(), request.getCandidatePhone(),
                 request.getCandidateLocation(), request.getCandidateLinkedIn(), request.getCandidatePortfolio()
             );
-
+            
+            
             // Generate PDF
             String pdfUrl = pdfService.generatePDFFromLatex(latexContent, request.getCandidateName());
 
@@ -374,6 +436,21 @@ public class ResumeController {
         }
     }
 
+    @GetMapping("/pdf/embed/{fileName}")
+    public ResponseEntity<Resource> embedPDF(@PathVariable String fileName) {
+        try {
+            Resource resource = pdfService.loadPDFAsResource(fileName);
+            return ResponseEntity.ok()
+                .header("Content-Type", "application/pdf")
+                .header("Content-Disposition", "inline; filename=\"" + fileName + "\"")
+                .header("X-Frame-Options", "SAMEORIGIN")
+                .header("Cache-Control", "public, max-age=3600")
+                .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     // Cache management endpoints
     @GetMapping("/cache/stats")
     public ResponseEntity<String> getCacheStats() {
@@ -417,4 +494,84 @@ public class ResumeController {
             return ResponseEntity.internalServerError().body("PDF generation test failed: " + e.getMessage());
         }
     }
+
+    // Cover letter helper methods
+    private String buildCandidateBackground(ResumeData resumeData, PersonalInfo personalInfo) {
+        StringBuilder background = new StringBuilder();
+        
+        background.append("Name: ").append(personalInfo.getName()).append("\n");
+        background.append("Email: ").append(personalInfo.getEmail()).append("\n");
+        background.append("Location: ").append(personalInfo.getLocation()).append("\n");
+        
+        if (resumeData.getExperiences() != null && !resumeData.getExperiences().isEmpty()) {
+            background.append("Experience: ");
+            for (ResumeBlock experience : resumeData.getExperiences()) {
+                background.append(experience.getTitle()).append(" at ").append(experience.getCompany()).append(", ");
+            }
+            background.append("\n");
+        }
+        
+        if (resumeData.getProjects() != null && !resumeData.getProjects().isEmpty()) {
+            background.append("Projects: ");
+            for (ResumeBlock project : resumeData.getProjects()) {
+                background.append(project.getTitle()).append(", ");
+            }
+            background.append("\n");
+        }
+        
+        if (resumeData.getSkills() != null && !resumeData.getSkills().isEmpty()) {
+            background.append("Skills: ");
+            for (SkillsBlock skillsBlock : resumeData.getSkills()) {
+                background.append(skillsBlock.getCategory()).append(": ").append(String.join(", ", skillsBlock.getSkills())).append(", ");
+            }
+            background.append("\n");
+        }
+        
+        return background.toString();
+    }
+
+    private Map<String, Object> parseCoverLetterResponse(String llmResponse) {
+        try {
+            return objectMapper.readValue(llmResponse, new TypeReference<Map<String, Object>>() {});
+        } catch (JsonProcessingException e) {
+            System.err.println("Error parsing cover letter LLM response: " + e.getMessage());
+            // Return default content if parsing fails
+            Map<String, Object> defaultContent = new HashMap<>();
+            defaultContent.put("openingParagraph", "I am writing to express my strong interest in the position at your company.");
+            defaultContent.put("bodyParagraph1", "My experience and skills align well with the requirements of this role.");
+            defaultContent.put("bodyParagraph2", "I am excited about the opportunity to contribute to your team.");
+            defaultContent.put("closingParagraph", "Thank you for considering my application. I look forward to hearing from you.");
+            return defaultContent;
+        }
+    }
+
+    private CoverLetterData createCoverLetterData(CoverLetterRequest request, PersonalInfo personalInfo, Map<String, Object> coverLetterContent) {
+        // Get current date
+        String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+        
+        // Set default hiring manager if not provided
+        String hiringManager = request.getHiringManager();
+        if (hiringManager == null || hiringManager.trim().isEmpty()) {
+            hiringManager = "Hiring Manager";
+        }
+        
+        return new CoverLetterData(
+            personalInfo.getName(),
+            personalInfo.getEmail(),
+            personalInfo.getPhone(),
+            personalInfo.getLocation(),
+            personalInfo.getLinkedin(),
+            personalInfo.getPortfolio(),
+            currentDate,
+            request.getCompanyName(),
+            request.getCompanyAddress(),
+            request.getCompanyCityStateZip(),
+            hiringManager,
+            (String) coverLetterContent.get("openingParagraph"),
+            (String) coverLetterContent.get("bodyParagraph1"),
+            (String) coverLetterContent.get("bodyParagraph2"),
+            (String) coverLetterContent.get("closingParagraph")
+        );
+    }
+
 } 

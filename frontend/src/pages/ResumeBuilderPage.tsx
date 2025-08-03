@@ -27,6 +27,7 @@ import DraggableItem from "../components/dragdrop/DraggableItem";
 import DemoWalkthrough from "../components/DemoWalkthrough";
 import DemoRestartButton from "../components/DemoRestartButton";
 import DemoWelcomeMessage from "../components/DemoWelcomeMessage";
+import CoverLetterPreview from "../components/CoverLetterPreview";
 import { useApi } from "../hooks/useApi";
 import { useDragAndDrop } from "../hooks/useDragAndDrop";
 import { useDataPersistence } from "../hooks/useDataPersistence";
@@ -41,6 +42,8 @@ import type {
   EducationBlock,
   SkillsBlock,
   CertificationBlock,
+  CoverLetterResponse,
+  CoverLetterRequest,
 } from "../types";
 import Card from "../components/ui/Card";
 import DropZone from "../components/dragdrop/DropZone";
@@ -109,9 +112,13 @@ const ResumeBuilderPage: React.FC = () => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [temporarySkills, setTemporarySkills] = useState<string[]>([]);
+  const [coverLetter, setCoverLetter] = useState<CoverLetterResponse | null>(
+    null
+  );
+  const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
 
   // API hook
-  const { getResumeBlocks } = useApi();
+  const { getResumeBlocks, generateCoverLetter } = useApi();
 
   // Auth hook
   const { logout } = useAuth();
@@ -231,7 +238,10 @@ const ResumeBuilderPage: React.FC = () => {
     // Append temporary skills to existing "Skills & Technologies" category or create it
     if (temporarySkills.length > 0) {
       if (skillsByCategory["Skills & Technologies"]) {
-        skillsByCategory["Skills & Technologies"] = [...skillsByCategory["Skills & Technologies"], ...temporarySkills];
+        skillsByCategory["Skills & Technologies"] = [
+          ...skillsByCategory["Skills & Technologies"],
+          ...temporarySkills,
+        ];
       } else {
         skillsByCategory["Skills & Technologies"] = temporarySkills;
       }
@@ -267,6 +277,7 @@ const ResumeBuilderPage: React.FC = () => {
     setSuggestedProjects([]);
     setAnalysis(null);
     setTemporarySkills([]); // Clear temporary skills
+    setCoverLetter(null); // Clear cover letter
 
     // Clear job analysis session from localStorage
     saveJobAnalysisSession(null);
@@ -456,6 +467,64 @@ const ResumeBuilderPage: React.FC = () => {
     saveJobAnalysisSession(result);
 
     toast.success("Job analysis completed!");
+  };
+
+  const handleGenerateCoverLetter = async (
+    jobDescription: string,
+    jobTitle: string,
+    companyName: string
+  ) => {
+    try {
+      setIsGeneratingCoverLetter(true);
+
+      const request: CoverLetterRequest = {
+        jobDescription,
+        jobTitle,
+        companyName,
+      };
+
+      const response = await generateCoverLetter(request);
+
+      if (response) {
+        console.log("Cover letter response:", response);
+        setCoverLetter(response);
+
+        if (response.success) {
+          toast.success("Cover letter generated successfully!");
+          console.log("Cover letter file name:", response.fileName);
+          console.log("Cover letter PDF path:", response.pdfFilePath);
+        } else {
+          toast.error(
+            response.errorMessage || "Failed to generate cover letter"
+          );
+        }
+      } else {
+        toast.error("Failed to generate cover letter");
+      }
+    } catch (error) {
+      console.error("Error generating cover letter:", error);
+      toast.error("Failed to generate cover letter");
+    } finally {
+      setIsGeneratingCoverLetter(false);
+    }
+  };
+
+  const handleDownloadCoverLetter = () => {
+    if (coverLetter?.pdfFilePath) {
+      window.open(
+        `${
+          import.meta.env.VITE_API_BASE_URL ||
+          "https://aetherdash.xyz/resume/api"
+        }${coverLetter.pdfFilePath}`,
+        "_blank"
+      );
+    }
+  };
+
+  const handleRegenerateCoverLetter = () => {
+    // This would need the original job description, title, and company name
+    // For now, we'll just clear the current cover letter
+    setCoverLetter(null);
   };
 
   // Handle adding temporary skills (not saved to database)
@@ -650,6 +719,8 @@ const ResumeBuilderPage: React.FC = () => {
                 onAnalyze={handleJobAnalysis}
                 onAnalysisComplete={handleAnalysisComplete}
                 onClear={handleClearAnalysis}
+                onGenerateCoverLetter={handleGenerateCoverLetter}
+                isGeneratingCoverLetter={isGeneratingCoverLetter}
               />
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -725,43 +796,46 @@ const ResumeBuilderPage: React.FC = () => {
               </div>
 
               {/* Suggested Skills Section */}
-              {analysis?.suggestedSkills && analysis.suggestedSkills.length > 0 && (
-                <div className="mt-6">
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Suggested Skills from Job Analysis
-                      </h3>
-                      <button
-                        onClick={handleAddAllTemporarySkills}
-                        className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
-                      >
-                        Add All to Resume
-                      </button>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">
-                      These technical skills were identified from the job description and can be added to your resume for this specific application.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {analysis.suggestedSkills.map((skillName, index) => (
-                        <div
-                          key={index}
-                          className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm"
+              {analysis?.suggestedSkills &&
+                analysis.suggestedSkills.length > 0 && (
+                  <div className="mt-6">
+                    <Card className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Suggested Skills from Job Analysis
+                        </h3>
+                        <button
+                          onClick={handleAddAllTemporarySkills}
+                          className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
                         >
-                          <span>{skillName}</span>
-                          <button
-                            onClick={() => handleAddTemporarySkill(skillName)}
-                            className="ml-2 text-green-600 hover:text-green-800"
+                          Add All to Resume
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">
+                        These technical skills were identified from the job
+                        description and can be added to your resume for this
+                        specific application.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {analysis.suggestedSkills.map((skillName, index) => (
+                          <div
+                            key={index}
+                            className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm"
                           >
-                            <Plus className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                </div>
-              )}
+                            <span>{skillName}</span>
+                            <button
+                              onClick={() => handleAddTemporarySkill(skillName)}
+                              className="ml-2 text-green-600 hover:text-green-800"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+                )}
 
               {/* Temporary Skills Section */}
               {temporarySkills.length > 0 && (
@@ -777,7 +851,8 @@ const ResumeBuilderPage: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-4">
-                      These skills have been added to your resume for this specific job application and will be included in the PDF.
+                      These skills have been added to your resume for this
+                      specific job application and will be included in the PDF.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {temporarySkills.map((skillName, index) => (
@@ -787,7 +862,9 @@ const ResumeBuilderPage: React.FC = () => {
                         >
                           <span>{skillName}</span>
                           <button
-                            onClick={() => handleRemoveTemporarySkill(skillName)}
+                            onClick={() =>
+                              handleRemoveTemporarySkill(skillName)
+                            }
                             className="ml-2 text-blue-600 hover:text-blue-800"
                           >
                             <X className="h-3 w-3" />
@@ -799,30 +876,13 @@ const ResumeBuilderPage: React.FC = () => {
                 </div>
               )}
 
-              {analysisResult && (
-                <Card className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    Generated Content
-                  </h3>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <p>
-                      <strong>LaTeX Content:</strong> Generated successfully
-                    </p>
-                    <p>
-                      <strong>Experiences Found:</strong>{" "}
-                      {suggestedExperiences.length}
-                    </p>
-                    <p>
-                      <strong>Projects Found:</strong>{" "}
-                      {suggestedProjects.length}
-                    </p>
-                    <p>
-                      <strong>Match Score:</strong>{" "}
-                      {analysis ? Math.round(analysis.matchScore * 100) : 0}%
-                    </p>
-                  </div>
-                </Card>
-              )}
+              {/* Cover Letter Preview */}
+              <CoverLetterPreview
+                coverLetter={coverLetter}
+                isLoading={isGeneratingCoverLetter}
+                onRegenerate={handleRegenerateCoverLetter}
+                onDownload={handleDownloadCoverLetter}
+              />
             </div>
           </div>
         );

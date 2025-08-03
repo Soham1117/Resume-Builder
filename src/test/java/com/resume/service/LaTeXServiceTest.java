@@ -55,10 +55,10 @@ class LaTeXServiceTest {
         assertTrue(skillsLatex.contains("\\bulletItem{"));
         assertTrue(skillsLatex.contains("\\vspace{\\vspaceAfterBullets}"));
         
-        System.out.println("Generated Skills LaTeX:");
-        System.out.println("========================");
-        System.out.println(skillsLatex);
-        System.out.println("========================");
+        
+        
+        
+        
     }
 
     @Test
@@ -117,10 +117,10 @@ class LaTeXServiceTest {
         assertTrue(educationLatex.contains("\\textbf{"));
         assertTrue(educationLatex.contains("\\textit{\\small"));
         
-        System.out.println("Generated Education LaTeX:");
-        System.out.println("==========================");
-        System.out.println(educationLatex);
-        System.out.println("==========================");
+        
+        
+        
+        
     }
 
     @Test
@@ -174,10 +174,10 @@ class LaTeXServiceTest {
         // Check that GPA is not present
         assertFalse(educationLatex.contains("GPA:"));
         
-        System.out.println("Education LaTeX without GPA:");
-        System.out.println("============================");
-        System.out.println(educationLatex);
-        System.out.println("============================");
+        
+        
+        
+        
     }
 
     @Test
@@ -220,10 +220,10 @@ class LaTeXServiceTest {
         assertFalse(skillsLatex.isEmpty());
         
         // Print the actual output to see what it looks like
-        System.out.println("Special Characters Skills LaTeX:");
-        System.out.println("================================");
-        System.out.println(skillsLatex);
-        System.out.println("================================");
+        
+        
+        
+        
         
         // Check that the output contains the skills (they should be properly escaped)
         assertTrue(skillsLatex.contains("C++")); // C++ should be present

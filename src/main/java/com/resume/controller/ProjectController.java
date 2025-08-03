@@ -78,8 +78,8 @@ public class ProjectController {
     public ResponseEntity<Project> saveProject(@RequestBody Project project) {
         try {
             String username = getCurrentUsername();
-            System.out.println("Saving project for user: " + username);
-            System.out.println("Project data: " + project);
+            
+            
             
             if (project.getTitle() == null || project.getTitle().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(null);

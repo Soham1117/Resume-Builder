@@ -221,6 +221,29 @@ export interface AnalysisResult {
   matchScore: number;
 }
 
+export interface CoverLetterRequest {
+  jobDescription: string;
+  jobTitle: string;
+  companyName: string;
+  companyAddress?: string;
+  companyCityStateZip?: string;
+  hiringManager?: string;
+  candidateName?: string;
+  candidateEmail?: string;
+  candidatePhone?: string;
+  candidateLocation?: string;
+  candidateLinkedIn?: string;
+  candidatePortfolio?: string;
+}
+
+export interface CoverLetterResponse {
+  coverLetterContent: string;
+  pdfFilePath: string;
+  fileName: string;
+  success: boolean;
+  errorMessage?: string;
+}
+
 export interface BackendJobAnalysisResponse {
   selectedExperiences: ResumeBlock[];
   selectedProjects: ResumeBlock[];
@@ -1368,6 +1391,16 @@ class ApiService {
     } catch (error) {
       console.error("Error counting education:", error);
       throw new Error("Failed to count education");
+    }
+  }
+
+  async generateCoverLetter(request: CoverLetterRequest): Promise<CoverLetterResponse> {
+    try {
+      const response = await api.post<CoverLetterResponse>("/resume/cover-letter/generate", request);
+      return response.data;
+    } catch (error) {
+      console.error("Error generating cover letter:", error);
+      throw error;
     }
   }
 }

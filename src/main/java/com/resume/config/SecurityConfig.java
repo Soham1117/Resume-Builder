@@ -36,9 +36,7 @@ public class SecurityConfig {
             .headers(headers -> headers
                 .frameOptions(frame -> frame.disable()) // Disables X-Frame-Options header
                 .addHeaderWriter((request, response) -> {
-                    // Apply CSP to allow iframe embedding from localhost:5173
-                    response.setHeader("Content-Security-Policy", "frame-ancestors http://localhost:5173");
-                    response.setHeader("Content-Security-Policy", "frame-ancestors http://aetherdash.xyz");
+                    response.setHeader("Content-Security-Policy", "frame-ancestors http://localhost:5173 https://aetherdash.xyz");
                 })
             )
             .authorizeHttpRequests(authz -> authz

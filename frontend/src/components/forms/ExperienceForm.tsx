@@ -28,6 +28,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
     technologies: [],
   });
   const [newBulletPoint, setNewBulletPoint] = useState("");
+  const [newBulletLink, setNewBulletLink] = useState("");
   const [newTechnology, setNewTechnology] = useState("");
 
   // Component mount - no need to load data as parent manages it
@@ -54,8 +55,37 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
 
   const handleEdit = (item: NormalizedExperience) => {
     setEditingId(item.id!);
-    setFormData({ ...item });
+
+    // Parse existing bullets to extract links
+    const parsedBullets =
+      item.bullets?.map((bullet) => {
+        // Check if bullet text contains link indicator
+        if (bullet.bulletText && bullet.bulletText.includes("[LINK:")) {
+          const linkMatch = bullet.bulletText.match(/\[LINK:\s*([^\]]+)\]/);
+          if (linkMatch) {
+            const link = linkMatch[1].trim();
+            const textWithoutLink = bullet.bulletText
+              .replace(/\[LINK:\s*[^\]]+\]/, "")
+              .trim();
+            return {
+              ...bullet,
+              bulletText: textWithoutLink,
+              link: link,
+            };
+          }
+        }
+        return bullet;
+      }) || [];
+
+    setFormData({
+      ...item,
+      bullets: parsedBullets,
+    });
     setIsAddingNew(false);
+    // Clear the input fields when editing
+    setNewBulletPoint("");
+    setNewBulletLink("");
+    setNewTechnology("");
   };
 
   const handleSave = async () => {
@@ -111,7 +141,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
       setEditingId(null);
       setFormData({ bullets: [], technologies: [] });
       setIsAddingNew(false);
-      
+
       // Trigger data loading after successful save
       if (onSaveComplete) {
         onSaveComplete();
@@ -129,6 +159,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
     setFormData({ bullets: [], technologies: [] });
     setIsAddingNew(false);
     setNewBulletPoint("");
+    setNewBulletLink("");
     setNewTechnology("");
     setError(null);
   };
@@ -165,6 +196,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
       const bulletData = {
         bulletText: newBulletPoint.trim(),
         orderIndex: (formData.bullets?.length || 0) + 1,
+        link: newBulletLink.trim() || undefined,
       };
 
       if (isAddingNew) {
@@ -176,13 +208,15 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
         const savedBullet = await apiService.addBulletToExperience(
           editingId,
           bulletData.bulletText,
-          bulletData.orderIndex
+          bulletData.orderIndex,
+          bulletData.link
         );
         const updatedBullets = [...(formData.bullets || []), savedBullet];
         setFormData((prev) => ({ ...prev, bullets: updatedBullets }));
       }
 
       setNewBulletPoint("");
+      setNewBulletLink("");
     } catch (err) {
       console.error("Error adding bullet point:", err);
       setError("Failed to add bullet point");
@@ -380,38 +414,82 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
                       {formData.bullets?.map((bullet, index) => (
                         <div
                           key={bullet.id || index}
-                          className="flex items-center space-x-2"
+                          className="flex items-start space-x-2"
                         >
-                          <span className="text-gray-400">•</span>
-                          <span className="flex-1 text-sm">
-                            {bullet.bulletText}
-                          </span>
-                          <button
-                            onClick={() => handleRemoveBulletPoint(bullet.id!)}
-                            disabled={saving}
-                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+                          <span className="text-gray-400 mt-1">•</span>
+                          <div className="flex-1">
+                            <span className="text-sm">{bullet.bulletText}</span>
+                            {bullet.link && (
+                              <div className="mt-1">
+                                <a
+                                  href={bullet.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center"
+                                >
+                                  <svg
+                                    className="w-3 h-3 mr-1"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  View Project
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex space-x-1">
+                            <button
+                              onClick={() =>
+                                handleRemoveBulletPoint(bullet.id!)
+                              }
+                              disabled={saving}
+                              className="text-red-500 hover:text-red-700 disabled:opacity-50 mt-1"
+                              title="Remove bullet point"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       ))}
-                      <div className="flex space-x-2">
-                        <Input
-                          value={newBulletPoint}
-                          onChange={(e) => setNewBulletPoint(e.target.value)}
-                          placeholder="Add a key achievement or responsibility"
-                          onKeyPress={(e) =>
-                            handleKeyPress(e, handleAddBulletPoint)
-                          }
-                          disabled={saving}
-                        />
-                        <button
-                          onClick={handleAddBulletPoint}
-                          disabled={saving || !newBulletPoint.trim()}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
+                      <div className="space-y-2">
+                        <div className="flex space-x-2">
+                          <Input
+                            value={newBulletPoint}
+                            onChange={(e) => setNewBulletPoint(e.target.value)}
+                            placeholder="Add a key achievement or responsibility"
+                            onKeyPress={(e) =>
+                              handleKeyPress(e, handleAddBulletPoint)
+                            }
+                            disabled={saving}
+                          />
+                          <button
+                            onClick={handleAddBulletPoint}
+                            disabled={saving || !newBulletPoint.trim()}
+                            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block text-xs text-gray-600">
+                            Project Link (optional)
+                          </label>
+                          <div className="flex space-x-2">
+                            <Input
+                              value={newBulletLink}
+                              onChange={(e) => setNewBulletLink(e.target.value)}
+                              placeholder="https://github.com/username/project"
+                              disabled={saving}
+                              className="flex-1"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -580,40 +658,88 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
                         {formData.bullets?.map((bullet, index) => (
                           <div
                             key={bullet.id || index}
-                            className="flex items-center space-x-2"
+                            className="flex items-start space-x-2"
                           >
-                            <span className="text-gray-400">•</span>
-                            <span className="flex-1 text-sm">
-                              {bullet.bulletText}
-                            </span>
-                            <button
-                              onClick={() =>
-                                handleRemoveBulletPoint(bullet.id!)
-                              }
-                              disabled={saving}
-                              className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
+                            <span className="text-gray-400 mt-1">•</span>
+                            <div className="flex-1">
+                              <span className="text-sm">
+                                {bullet.bulletText}
+                              </span>
+                              {bullet.link && (
+                                <div className="mt-1">
+                                  <a
+                                    href={bullet.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center"
+                                  >
+                                    <svg
+                                      className="w-3 h-3 mr-1"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    View Project
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex space-x-1">
+                              <button
+                                onClick={() =>
+                                  handleRemoveBulletPoint(bullet.id!)
+                                }
+                                disabled={saving}
+                                className="text-red-500 hover:text-red-700 disabled:opacity-50 mt-1"
+                                title="Remove bullet point"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
                         ))}
-                        <div className="flex space-x-2">
-                          <Input
-                            value={newBulletPoint}
-                            onChange={(e) => setNewBulletPoint(e.target.value)}
-                            placeholder="Add a key achievement or responsibility"
-                            onKeyPress={(e) =>
-                              handleKeyPress(e, handleAddBulletPoint)
-                            }
-                            disabled={saving}
-                          />
-                          <button
-                            onClick={handleAddBulletPoint}
-                            disabled={!newBulletPoint.trim() || saving}
-                            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm"
-                          >
-                            Add
-                          </button>
+                        <div className="space-y-2">
+                          <div className="flex space-x-2">
+                            <Input
+                              value={newBulletPoint}
+                              onChange={(e) =>
+                                setNewBulletPoint(e.target.value)
+                              }
+                              placeholder="Add a key achievement or responsibility"
+                              onKeyPress={(e) =>
+                                handleKeyPress(e, handleAddBulletPoint)
+                              }
+                              disabled={saving}
+                            />
+                            <button
+                              onClick={handleAddBulletPoint}
+                              disabled={!newBulletPoint.trim() || saving}
+                              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm"
+                            >
+                              Add
+                            </button>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="block text-xs text-gray-600">
+                              Project Link (optional)
+                            </label>
+                            <div className="flex space-x-2">
+                              <Input
+                                value={newBulletLink}
+                                onChange={(e) =>
+                                  setNewBulletLink(e.target.value)
+                                }
+                                placeholder="https://github.com/username/project"
+                                disabled={saving}
+                                className="flex-1"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -724,7 +850,32 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
                               className="flex items-start"
                             >
                               <span className="text-gray-400 mr-2">•</span>
-                              <span>{bullet.bulletText}</span>
+                              <div className="flex-1">
+                                <span>{bullet.bulletText}</span>
+                                {bullet.link && (
+                                  <div className="mt-1">
+                                    <a
+                                      href={bullet.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center"
+                                    >
+                                      <svg
+                                        className="w-3 h-3 mr-1"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                      View Project
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
                             </li>
                           ))}
                           {item.bullets.length > 3 && (

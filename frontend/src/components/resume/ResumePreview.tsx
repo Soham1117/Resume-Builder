@@ -183,12 +183,49 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 {experience.bulletPoints &&
                   experience.bulletPoints.length > 0 && (
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {experience.bulletPoints.map((point, index) => (
-                        <li key={index} className="flex items-start space-x-2">
-                          <span className="text-primary-600 mt-1">•</span>
-                          <span>{point}</span>
-                        </li>
-                      ))}
+                      {experience.bulletPoints.map((point, index) => {
+                        // Parse link indicators from bullet points
+                        const linkMatch = point.match(/\[LINK:\s*([^\]]+)\]/);
+                        const hasLink = linkMatch && linkMatch[1];
+                        const textWithoutLink = hasLink
+                          ? point.replace(/\[LINK:\s*[^\]]+\]/, "").trim()
+                          : point;
+
+                        return (
+                          <li
+                            key={index}
+                            className="flex items-start space-x-2"
+                          >
+                            <span className="text-primary-600 mt-1">•</span>
+                            <div className="flex-1">
+                              <span>{textWithoutLink}</span>
+                              {hasLink && (
+                                <div className="mt-1">
+                                  <a
+                                    href={linkMatch[1].trim()}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center"
+                                  >
+                                    <svg
+                                      className="w-3 h-3 mr-1"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    View Project
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 {experience.technologies &&
@@ -232,12 +269,46 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 </p>
                 {project.bulletPoints && project.bulletPoints.length > 0 && (
                   <ul className="text-sm text-gray-600 space-y-1">
-                    {project.bulletPoints.map((point, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <span className="text-primary-600 mt-1">•</span>
-                        <span>{point}</span>
-                      </li>
-                    ))}
+                    {project.bulletPoints.map((point, index) => {
+                      // Parse link indicators from bullet points
+                      const linkMatch = point.match(/\[LINK:\s*([^\]]+)\]/);
+                      const hasLink = linkMatch && linkMatch[1];
+                      const textWithoutLink = hasLink
+                        ? point.replace(/\[LINK:\s*[^\]]+\]/, "").trim()
+                        : point;
+
+                      return (
+                        <li key={index} className="flex items-start space-x-2">
+                          <span className="text-primary-600 mt-1">•</span>
+                          <div className="flex-1">
+                            <span>{textWithoutLink}</span>
+                            {hasLink && (
+                              <div className="mt-1">
+                                <a
+                                  href={linkMatch[1].trim()}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center"
+                                >
+                                  <svg
+                                    className="w-3 h-3 mr-1"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  View Project
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
                 {project.technologies && project.technologies.length > 0 && (

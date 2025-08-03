@@ -133,6 +133,19 @@ public class ExperienceService {
     }
     
     /**
+     * Add a bullet point with link to an experience
+     */
+    public ExperienceBullet addBulletToExperience(String username, Long experienceId, String bulletText, Integer orderIndex, String link) {
+        Experience experience = getExperienceByIdForUser(username, experienceId);
+        
+        ExperienceBullet bullet = new ExperienceBullet(experience, bulletText, orderIndex, link);
+        experience.addBullet(bullet);
+        
+        experienceRepository.save(experience);
+        return bullet;
+    }
+    
+    /**
      * Remove a bullet point from an experience
      */
     public void removeBulletFromExperience(String username, Long experienceId, Long bulletId) {

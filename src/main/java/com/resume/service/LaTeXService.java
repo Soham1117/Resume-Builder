@@ -181,7 +181,21 @@ public class LaTeXService {
             // Handle old structure with lines (for backward compatibility)
             else if (experience.getLines() != null) {
                 for (String line : experience.getLines()) {
-                    latex.append("\\item\\small{").append(escapeLatex(line)).append("}\n");
+                    String latexLine = escapeLatex(line);
+                    
+                    // Check if line contains a link indicator
+                    if (line.contains("[LINK:")) {
+                        int linkStart = line.indexOf("[LINK:");
+                        int linkEnd = line.indexOf("]", linkStart);
+                        if (linkStart != -1 && linkEnd != -1) {
+                            String beforeLink = line.substring(0, linkStart).trim();
+                            String link = line.substring(linkStart + 6, linkEnd).trim();
+                            
+                            latexLine = escapeLatex(beforeLink) + " \\href{" + link + "}{\\textcolor{blue}{\\faLink}}";
+                        }
+                    }
+                    
+                    latex.append("\\item\\small{").append(latexLine).append("}\n");
                 }
             }
             

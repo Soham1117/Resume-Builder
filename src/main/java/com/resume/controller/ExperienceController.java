@@ -148,8 +148,16 @@ public class ExperienceController {
             @RequestBody ExperienceBullet bullet) {
         try {
             String username = getCurrentUsername();
-            ExperienceBullet savedBullet = experienceService.addBulletToExperience(
-                username, id, bullet.getBulletText(), bullet.getOrderIndex());
+            ExperienceBullet savedBullet;
+            
+            if (bullet.getLink() != null && !bullet.getLink().trim().isEmpty()) {
+                savedBullet = experienceService.addBulletToExperience(
+                    username, id, bullet.getBulletText(), bullet.getOrderIndex(), bullet.getLink());
+            } else {
+                savedBullet = experienceService.addBulletToExperience(
+                    username, id, bullet.getBulletText(), bullet.getOrderIndex());
+            }
+            
             return ResponseEntity.ok(savedBullet);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

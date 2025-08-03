@@ -90,6 +90,7 @@ export interface NormalizedExperienceBullet {
   id?: number;
   bulletText: string;
   orderIndex: number;
+  link?: string;
   createdAt?: string;
 }
 

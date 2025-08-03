@@ -46,6 +46,7 @@ export interface ExperienceBullet {
   id?: number;
   bulletText: string;
   orderIndex: number;
+  link?: string;
   createdAt?: string;
 }
 
@@ -696,7 +697,8 @@ class ApiService {
             this.addBulletToExperience(
               savedExperience.id!,
               bullet.bulletText,
-              bullet.orderIndex
+              bullet.orderIndex,
+              bullet.link
             )
           );
         }
@@ -765,7 +767,8 @@ class ApiService {
   async addBulletToExperience(
     experienceId: number,
     bulletText: string,
-    orderIndex: number
+    orderIndex: number,
+    link?: string
   ): Promise<ExperienceBullet> {
     try {
       const response = await api.post<ExperienceBullet>(
@@ -773,6 +776,7 @@ class ApiService {
         {
           bulletText,
           orderIndex,
+          link,
         }
       );
       return response.data;
@@ -1394,9 +1398,14 @@ class ApiService {
     }
   }
 
-  async generateCoverLetter(request: CoverLetterRequest): Promise<CoverLetterResponse> {
+  async generateCoverLetter(
+    request: CoverLetterRequest
+  ): Promise<CoverLetterResponse> {
     try {
-      const response = await api.post<CoverLetterResponse>("/resume/cover-letter/generate", request);
+      const response = await api.post<CoverLetterResponse>(
+        "/resume/cover-letter/generate",
+        request
+      );
       return response.data;
     } catch (error) {
       console.error("Error generating cover letter:", error);

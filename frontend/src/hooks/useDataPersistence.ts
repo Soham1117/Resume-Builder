@@ -16,6 +16,7 @@ import type {
   Certification as NormalizedCertification,
   Education as NormalizedEducation,
 } from "../services/api";
+import { parseBulletsWithLinks } from "../utils/dataTransform";
 
 interface UseDataPersistenceReturn {
   isLoading: boolean;
@@ -121,10 +122,22 @@ export const useDataPersistence = (
           apiService.getAllEducation().catch(() => []),
         ]);
 
+        // Parse bullets with links for experiences
+        const parsedExperiences = experiencesData.map((exp) => ({
+          ...exp,
+          bullets: parseBulletsWithLinks(exp.bullets || []),
+        }));
+
+        // Parse bullets with links for projects
+        const parsedProjects = projectsData.map((proj) => ({
+          ...proj,
+          bullets: parseBulletsWithLinks(proj.bullets || []),
+        }));
+
         // Update state with loaded data
         setNormalizedPersonalInfo(personalInfoData);
-        setExperiences(experiencesData);
-        setProjects(projectsData);
+        setExperiences(parsedExperiences);
+        setProjects(parsedProjects);
         setSkills(skillsData);
         setCertifications(certificationsData);
         setEducation(educationData);
@@ -331,30 +344,36 @@ export const useDataPersistence = (
   );
 
   // Job analysis session persistence using localStorage
-  const saveJobAnalysisSession = useCallback((jobAnalysis: JobAnalysisResponse | null) => {
-    try {
-      if (jobAnalysis) {
-        localStorage.setItem('jobAnalysisSession', JSON.stringify(jobAnalysis));
-        console.log('Job analysis session saved to localStorage');
-      } else {
-        localStorage.removeItem('jobAnalysisSession');
-        console.log('Job analysis session cleared from localStorage');
+  const saveJobAnalysisSession = useCallback(
+    (jobAnalysis: JobAnalysisResponse | null) => {
+      try {
+        if (jobAnalysis) {
+          localStorage.setItem(
+            "jobAnalysisSession",
+            JSON.stringify(jobAnalysis)
+          );
+          console.log("Job analysis session saved to localStorage");
+        } else {
+          localStorage.removeItem("jobAnalysisSession");
+          console.log("Job analysis session cleared from localStorage");
+        }
+      } catch (error) {
+        console.error("Error saving job analysis session:", error);
       }
-    } catch (error) {
-      console.error('Error saving job analysis session:', error);
-    }
-  }, []);
+    },
+    []
+  );
 
   const loadJobAnalysisSession = useCallback((): JobAnalysisResponse | null => {
     try {
-      const saved = localStorage.getItem('jobAnalysisSession');
+      const saved = localStorage.getItem("jobAnalysisSession");
       if (saved) {
         const jobAnalysis = JSON.parse(saved);
-        console.log('Job analysis session loaded from localStorage');
+        console.log("Job analysis session loaded from localStorage");
         return jobAnalysis;
       }
     } catch (error) {
-      console.error('Error loading job analysis session:', error);
+      console.error("Error loading job analysis session:", error);
     }
     return null;
   }, []);

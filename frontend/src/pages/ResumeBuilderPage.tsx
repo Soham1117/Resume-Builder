@@ -192,7 +192,18 @@ const ResumeBuilderPage: React.FC = () => {
       location: exp.location || "",
       dateRange: exp.dateRange || "",
       description: exp.description || "",
-      bulletPoints: exp.bullets?.map((b) => b.bulletText) || [],
+      bulletPoints:
+        exp.bullets?.map((b) => {
+          // Handle bullets with separate link field
+          if (b.link && b.link.trim()) {
+            return `${b.bulletText} [LINK: ${b.link}]`;
+          }
+          // Handle bullets with link indicators already in text (from backend)
+          if (b.bulletText && b.bulletText.includes("[LINK:")) {
+            return b.bulletText;
+          }
+          return b.bulletText;
+        }) || [],
       category: "Work Experience",
       tags: exp.technologies?.map((t) => t.technology) || [],
       technologies: exp.technologies?.map((t) => t.technology) || [],

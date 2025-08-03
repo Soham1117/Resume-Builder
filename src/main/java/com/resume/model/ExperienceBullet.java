@@ -1,8 +1,18 @@
 package com.resume.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "experience_bullets")
@@ -23,6 +33,9 @@ public class ExperienceBullet {
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
     
+    @Column(name = "link")
+    private String link;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -42,6 +55,14 @@ public class ExperienceBullet {
         this(experience);
         this.bulletText = bulletText;
         this.orderIndex = orderIndex;
+    }
+    
+    // Constructor with link
+    public ExperienceBullet(Experience experience, String bulletText, Integer orderIndex, String link) {
+        this(experience);
+        this.bulletText = bulletText;
+        this.orderIndex = orderIndex;
+        this.link = link;
     }
     
     // Getters and Setters
@@ -77,6 +98,14 @@ public class ExperienceBullet {
         this.orderIndex = orderIndex;
     }
     
+    public String getLink() {
+        return link;
+    }
+    
+    public void setLink(String link) {
+        this.link = link;
+    }
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -92,6 +121,7 @@ public class ExperienceBullet {
                 ", experienceId=" + (experience != null ? experience.getId() : "null") +
                 ", bulletText='" + bulletText + '\'' +
                 ", orderIndex=" + orderIndex +
+                ", link='" + link + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }

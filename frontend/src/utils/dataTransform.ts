@@ -15,6 +15,28 @@ export interface ResumeBlock {
   priority?: number;
 }
 
+// Utility function to parse bullets with link indicators
+export function parseBulletsWithLinks(bullets: any[]): any[] {
+  return bullets.map((bullet) => {
+    // Check if bullet text contains link indicator
+    if (bullet.bulletText && bullet.bulletText.includes("[LINK:")) {
+      const linkMatch = bullet.bulletText.match(/\[LINK:\s*([^\]]+)\]/);
+      if (linkMatch) {
+        const link = linkMatch[1].trim();
+        const textWithoutLink = bullet.bulletText
+          .replace(/\[LINK:\s*[^\]]+\]/, "")
+          .trim();
+        return {
+          ...bullet,
+          bulletText: textWithoutLink,
+          link: link,
+        };
+      }
+    }
+    return bullet;
+  });
+}
+
 // Transform backend ResumeBlock to frontend ContentItem
 export function transformResumeBlocksToContentItems(
   resumeBlocks: ResumeBlock[]

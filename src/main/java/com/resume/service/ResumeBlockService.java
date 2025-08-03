@@ -153,13 +153,20 @@ public class ResumeBlockService {
      * Convert a single Experience entity to ResumeBlock
      */
     private ResumeBlock convertExperienceToResumeBlock(Experience experience) {
-        // Convert experience bullets to lines (handle null collection)
-        List<String> lines = experience.getBullets() != null ? 
-                experience.getBullets().stream()
-                        .sorted((b1, b2) -> Integer.compare(b1.getOrderIndex(), b2.getOrderIndex()))
-                        .map(bullet -> bullet.getBulletText())
-                        .collect(Collectors.toList()) : 
-                new ArrayList<>();
+        // Convert experience bullets to lines and handle links (handle null collection)
+        List<String> lines = new ArrayList<>();
+        if (experience.getBullets() != null) {
+            for (var bullet : experience.getBullets().stream()
+                    .sorted((b1, b2) -> Integer.compare(b1.getOrderIndex(), b2.getOrderIndex()))
+                    .collect(Collectors.toList())) {
+                String line = bullet.getBulletText();
+                // Add link indicator if bullet has a link
+                if (bullet.getLink() != null && !bullet.getLink().trim().isEmpty()) {
+                    line = line + " [LINK: " + bullet.getLink() + "]";
+                }
+                lines.add(line);
+            }
+        }
 
         // Convert experience technologies to tags (handle null collection)
         List<String> tags = experience.getTechnologies() != null ? 

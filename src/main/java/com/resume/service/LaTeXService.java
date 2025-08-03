@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import com.resume.model.CertificationBlock;
 import com.resume.model.CoverLetterData;
 import com.resume.model.EducationBlock;
 import com.resume.model.ExperienceProject;
@@ -45,10 +46,13 @@ public class LaTeXService {
             // Generate education section
             String educationLatex = generateEducationLatex(resumeData.getEducation());
             
+            // Generate skills section with certifications included
+            String skillsWithCertificationsLatex = generateSkillsWithCertificationsLatex(resumeData.getSkills(), resumeData.getCertifications());
+            
             // Replace section placeholders
             template = template.replace("{{EXPERIENCE_SECTION}}", experienceLatex);
             template = template.replace("{{PROJECTS_SECTION}}", projectsLatex);
-            template = template.replace("{{SKILLS_SECTION}}", skillsLatex);
+            template = template.replace("{{SKILLS_SECTION}}", skillsWithCertificationsLatex);
             template = template.replace("{{EDUCATION_SECTION}}", educationLatex);
             
             return template;
@@ -131,6 +135,63 @@ public class LaTeXService {
                 // Generate LaTeX for this category
                 latex.append("\\bulletItem{\\textbf{").append(escapeLatex(category)).append(":} ").append(skillList).append("}\n");
                 latex.append("\\vspace{\\vspaceAfterBullets}\n");
+            }
+        }
+        
+        return latex.toString();
+    }
+
+    public String generateSkillsWithCertificationsLatex(List<SkillsBlock> skillsBlocks, List<CertificationBlock> certificationBlocks) {
+        StringBuilder latex = new StringBuilder();
+        
+        // Generate regular skills
+        latex.append(generateSkillsLatex(skillsBlocks));
+        
+        // Generate certifications as part of skills section
+        if (certificationBlocks != null && !certificationBlocks.isEmpty()) {
+            // Create comma-separated list of certifications with links
+            String certificationList = certificationBlocks.stream()
+                    .map(cert -> {
+                        String certName = escapeLatex(cert.getName());
+                        if (cert.getLink() != null && !cert.getLink().trim().isEmpty()) {
+                            return certName + " \\href{" + cert.getLink().trim() + "}{\\textcolor{blue}{\\faLink}}";
+                        } else {
+                            return certName;
+                        }
+                    })
+                    .collect(Collectors.joining(", "));
+            
+            // Add certifications as a skills category
+            latex.append("\\bulletItem{\\textbf{Certifications:} ").append(certificationList).append("}\n");
+            latex.append("\\vspace{\\vspaceAfterBullets}\n");
+        }
+        
+        return latex.toString();
+    }
+
+    public String generateCertificationsLatex(List<CertificationBlock> certificationBlocks) {
+        if (certificationBlocks == null || certificationBlocks.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder latex = new StringBuilder();
+        
+        for (CertificationBlock certification : certificationBlocks) {
+            // Start the certification item
+            latex.append("\\item\n");
+            
+            // Add certification name and issuer
+            String name = certification.getName();
+            String issuer = certification.getIssuer();
+            
+            latex.append("\\begin{tabular*}{1.0\\textwidth}[b]{l@{\\extracolsep{\\fill}}r}\n");
+            latex.append("\\textbf{").append(escapeLatex(name)).append("} $|$ \\small{").append(escapeLatex(issuer)).append("} & ").append(escapeLatex(certification.getDate())).append("\n");
+            latex.append("\\end{tabular*}\n");
+            
+            // Add link if available
+            if (certification.getLink() != null && !certification.getLink().trim().isEmpty()) {
+                String link = certification.getLink().trim();
+                latex.append("\\small{\\href{").append(link).append("}{\\textcolor{blue}{\\faLink} View Certificate}}\n");
             }
         }
         

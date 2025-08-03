@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.resume.model.Certification;
+import com.resume.model.CertificationBlock;
 import com.resume.model.Education;
 import com.resume.model.EducationBlock;
 import com.resume.model.Experience;
@@ -55,6 +57,9 @@ public class ResumeBlockService {
     private EducationService educationService;
 
     @Autowired
+    private CertificationService certificationService;
+
+    @Autowired
     private UserRepository userRepository;
 
     private ResumeData resumeData;
@@ -81,12 +86,17 @@ public class ResumeBlockService {
             List<Education> education = educationService.getAllEducation(username);
             List<EducationBlock> educationBlocks = convertEducationToEducationBlocks(education);
 
+            // Load certifications from database
+            List<Certification> certifications = certificationService.getAllCertifications(username);
+            List<CertificationBlock> certificationBlocks = convertCertificationsToCertificationBlocks(certifications);
+
             // Create ResumeData object
             ResumeData data = new ResumeData();
             data.setExperiences(experienceBlocks);
             data.setProjects(projectBlocks);
             data.setSkills(skillsBlocks);
             data.setEducation(educationBlocks);
+            data.setCertifications(certificationBlocks);
 
             return data;
         } catch (Exception e) {
@@ -118,12 +128,17 @@ public class ResumeBlockService {
             List<Education> education = educationService.getAllEducation(user.getUsername());
             List<EducationBlock> educationBlocks = convertEducationToEducationBlocks(education);
 
+            // Load certifications from database
+            List<Certification> certifications = certificationService.getAllCertifications(user.getUsername());
+            List<CertificationBlock> certificationBlocks = convertCertificationsToCertificationBlocks(certifications);
+
             // Create ResumeData object
             ResumeData data = new ResumeData();
             data.setExperiences(experienceBlocks);
             data.setProjects(projectBlocks);
             data.setSkills(skillsBlocks);
             data.setEducation(educationBlocks);
+            data.setCertifications(certificationBlocks);
 
             return data;
         } catch (Exception e) {
@@ -268,6 +283,25 @@ public class ResumeBlockService {
                     edu.getDateRange(),
                     edu.getGpa(),
                     edu.getLocation()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert Certification list to CertificationBlock list
+     */
+    private List<CertificationBlock> convertCertificationsToCertificationBlocks(List<Certification> certifications) {
+        if (certifications == null || certifications.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        return certifications.stream()
+                .map(cert -> new CertificationBlock(
+                    cert.getId().toString(),
+                    cert.getName(),
+                    cert.getIssuer(),
+                    cert.getDateObtained() != null ? cert.getDateObtained().toString() : "",
+                    cert.getLink()
                 ))
                 .collect(Collectors.toList());
     }

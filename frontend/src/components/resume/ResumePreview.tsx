@@ -394,44 +394,35 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Certifications Section */}
-      {certifications.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-200 pb-1">
-            Certifications & Achievements
-          </h2>
-          <div className="space-y-3">
-            {certifications.map((cert) => (
-              <div key={cert.id} className="mb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{cert.name}</h4>
-                    <p className="text-sm text-gray-600">{cert.issuer}</p>
-                    <p className="text-xs text-gray-500">
-                      Earned:{" "}
-                      {new Date(cert.date).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                      })}
-                    </p>
-                  </div>
-                  {cert.link && (
-                    <a
-                      href={cert.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary-600 hover:underline"
+            
+            {/* Certifications as part of Skills section */}
+            {certifications.length > 0 && (
+              <div className="mb-3">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Certifications
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {certifications.map((cert) => (
+                    <span
+                      key={cert.id}
+                      className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm flex items-center"
                     >
-                      Verify →
-                    </a>
-                  )}
+                      {cert.name}
+                      {cert.link && (
+                        <a
+                          href={cert.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-1 text-blue-600 hover:text-blue-800"
+                        >
+                          🔗
+                        </a>
+                      )}
+                    </span>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}

@@ -34,6 +34,7 @@ import { useDataPersistence } from "../hooks/useDataPersistence";
 import { useAuth } from "../hooks/useAuth";
 import { useDemo } from "../context/DemoContext";
 import { transformResumeBlocksToContentItems } from "../utils/dataTransform";
+import { api } from "../services/api";
 import type {
   ContentItem,
   JobAnalysisResponse,
@@ -520,15 +521,30 @@ const ResumeBuilderPage: React.FC = () => {
     }
   };
 
-  const handleDownloadCoverLetter = () => {
-    if (coverLetter?.pdfFilePath) {
-      window.open(
-        `${
-          import.meta.env.VITE_API_BASE_URL ||
-          "https://aetherdash.xyz/resume/api"
-        }${coverLetter.pdfFilePath}`,
-        "_blank"
-      );
+  const handleDownloadCoverLetter = async () => {
+    if (coverLetter?.fileName) {
+      try {
+        // Use the API service to download the PDF with authentication
+        const response = await api.get(`/resume/pdf/${coverLetter.fileName}`, {
+          responseType: "blob",
+        });
+
+        // Create download link
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = coverLetter.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("Cover letter downloaded successfully!");
+      } catch (error) {
+        console.error("Download error:", error);
+        toast.error("Failed to download cover letter. Please try again.");
+      }
     }
   };
 

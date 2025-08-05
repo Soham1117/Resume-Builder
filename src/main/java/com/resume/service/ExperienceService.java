@@ -49,6 +49,128 @@ public class ExperienceService {
     }
     
     /**
+     * Get all experiences for a user, ordered by date range (latest first)
+     */
+    public List<Experience> getAllExperiencesByDate(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        
+        List<Experience> experiences = experienceRepository.findByUserNoSort(user);
+        
+        // Sort by date range (latest first)
+        System.out.println("=== getAllExperiencesByDate - BEFORE SORTING ===");
+        for (Experience exp : experiences) {
+            System.out.println("Experience: " + exp.getTitle() + " - Date Range: " + exp.getDateRange() + " - End Year: " + extractEndYear(exp.getDateRange()));
+        }
+        
+        experiences.sort((e1, e2) -> {
+            String dateRange1 = e1.getDateRange() != null ? e1.getDateRange() : "";
+            String dateRange2 = e2.getDateRange() != null ? e2.getDateRange() : "";
+            
+            // Extract the end year from date range (e.g., "2020-2023" -> 2023)
+            int year1 = extractEndYear(dateRange1);
+            int year2 = extractEndYear(dateRange2);
+            
+            // Sort by year descending (latest first)
+            if (year1 != year2) {
+                return Integer.compare(year2, year1);
+            }
+            
+            // If same year, sort by creation date descending
+            return e2.getCreatedAt().compareTo(e1.getCreatedAt());
+        });
+        
+        System.out.println("=== getAllExperiencesByDate - AFTER SORTING ===");
+        for (Experience exp : experiences) {
+            System.out.println("Experience: " + exp.getTitle() + " - Date Range: " + exp.getDateRange() + " - End Year: " + extractEndYear(exp.getDateRange()));
+        }
+        
+        return experiences;
+    }
+    
+    /**
+     * Get all experiences for a user with bullets and technologies eagerly loaded, ordered by date range (latest first)
+     * This method is specifically for resume generation to avoid lazy loading issues
+     */
+    public List<Experience> getAllExperiencesByDateWithDetails(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        
+        List<Experience> experiences = experienceRepository.findByUserWithBulletsAndTechnologiesNoSort(user);
+        
+        // Manually initialize technologies collection for each experience
+        for (Experience experience : experiences) {
+            Hibernate.initialize(experience.getTechnologies());
+        }
+        
+        // Sort by date range (latest first)
+        System.out.println("=== getAllExperiencesByDateWithDetails - BEFORE SORTING ===");
+        for (Experience exp : experiences) {
+            System.out.println("Experience: " + exp.getTitle() + " - Date Range: " + exp.getDateRange() + " - End Year: " + extractEndYear(exp.getDateRange()));
+        }
+        
+        experiences.sort((e1, e2) -> {
+            String dateRange1 = e1.getDateRange() != null ? e1.getDateRange() : "";
+            String dateRange2 = e2.getDateRange() != null ? e2.getDateRange() : "";
+            
+            // Extract the end year from date range (e.g., "2020-2023" -> 2023)
+            int year1 = extractEndYear(dateRange1);
+            int year2 = extractEndYear(dateRange2);
+            
+            // Sort by year descending (latest first)
+            if (year1 != year2) {
+                return Integer.compare(year2, year1);
+            }
+            
+            // If same year, sort by creation date descending
+            return e2.getCreatedAt().compareTo(e1.getCreatedAt());
+        });
+        
+        System.out.println("=== getAllExperiencesByDateWithDetails - AFTER SORTING ===");
+        for (Experience exp : experiences) {
+            System.out.println("Experience: " + exp.getTitle() + " - Date Range: " + exp.getDateRange() + " - End Year: " + extractEndYear(exp.getDateRange()));
+        }
+        
+        return experiences;
+    }
+    
+    /**
+     * Extract the end year from a date range string
+     */
+    private int extractEndYear(String dateRange) {
+        if (dateRange == null || dateRange.trim().isEmpty()) {
+            return 0;
+        }
+        
+        // Handle various date range formats
+        String[] patterns = {
+            "\\d{4}-\\d{4}", // 2020-2023
+            "\\d{4}", // 2023
+            "\\w+\\s+\\d{4}\\s*-\\s*\\w+\\s+\\d{4}", // Jan 2020 - Dec 2023
+            "\\w+\\s+\\d{4}\\s*-\\s*Present", // Jan 2020 - Present
+            "\\w+\\s+\\d{4}\\s*-\\s*\\w+\\s+\\d{4}" // Jan 2020 - Dec 2023
+        };
+        
+        for (String pattern : patterns) {
+            if (dateRange.matches(".*" + pattern + ".*")) {
+                // Extract the last 4-digit number (year)
+                String[] parts = dateRange.split("\\D+");
+                for (int i = parts.length - 1; i >= 0; i--) {
+                    if (parts[i].length() == 4) {
+                        try {
+                            return Integer.parseInt(parts[i]);
+                        } catch (NumberFormatException e) {
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return 0;
+    }
+    
+    /**
      * Get all experiences for a user with bullets and technologies eagerly loaded
      * This method is specifically for resume generation to avoid lazy loading issues
      */

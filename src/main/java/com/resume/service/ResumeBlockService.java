@@ -70,8 +70,8 @@ public class ResumeBlockService {
     public ResumeData loadResumeBlocks(String username) {
         try {
            
-            // Load experiences from database with bullets and technologies eagerly loaded
-            List<Experience> experiences = experienceService.getAllExperiencesWithDetails(username);
+            // Load experiences from database with bullets and technologies eagerly loaded, sorted by date
+            List<Experience> experiences = experienceService.getAllExperiencesByDateWithDetails(username);
             List<ResumeBlock> experienceBlocks = convertExperiencesToResumeBlocks(experiences);
 
             // Load projects from database
@@ -112,8 +112,8 @@ public class ResumeBlockService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
 
-            // Load experiences from database with bullets and technologies eagerly loaded
-            List<Experience> experiences = experienceService.getAllExperiencesWithDetails(user.getUsername());
+            // Load experiences from database with bullets and technologies eagerly loaded, sorted by date
+            List<Experience> experiences = experienceService.getAllExperiencesByDateWithDetails(user.getUsername());
             List<ResumeBlock> experienceBlocks = convertExperiencesToResumeBlocks(experiences);
 
             // Load projects from database
@@ -328,11 +328,41 @@ public class ResumeBlockService {
         // Use vector embeddings to score and rank experiences, preserving all data
         List<ScoredBlock> scoredExperiences = embedder.scoreBlocksWithEmbeddings(experiences, jobDescription, keywordService);
         
-        // Return top experiences up to maxExperiences, preserving original ResumeBlock data
-        return scoredExperiences.stream()
+        // Get top experiences up to maxExperiences, preserving original ResumeBlock data
+        List<ResumeBlock> topExperiences = scoredExperiences.stream()
                 .limit(maxExperiences)
                 .map(ScoredBlock::getBlock)
                 .collect(Collectors.toList());
+        
+        // Sort the selected experiences by date range (latest first)
+        System.out.println("=== selectTopExperiences - BEFORE DATE SORTING ===");
+        for (ResumeBlock exp : topExperiences) {
+            System.out.println("Experience: " + exp.getTitle() + " - Date Range: " + exp.getDateRange() + " - End Year: " + extractEndYearFromDateRange(exp.getDateRange()));
+        }
+        
+        topExperiences.sort((e1, e2) -> {
+            String dateRange1 = e1.getDateRange() != null ? e1.getDateRange() : "";
+            String dateRange2 = e2.getDateRange() != null ? e2.getDateRange() : "";
+            
+            // Extract the end year from date range (e.g., "2020-2023" -> 2023)
+            int year1 = extractEndYearFromDateRange(dateRange1);
+            int year2 = extractEndYearFromDateRange(dateRange2);
+            
+            // Sort by year descending (latest first)
+            if (year1 != year2) {
+                return Integer.compare(year2, year1);
+            }
+            
+            // If same year, maintain the relevance order
+            return 0;
+        });
+        
+        System.out.println("=== selectTopExperiences - AFTER DATE SORTING ===");
+        for (ResumeBlock exp : topExperiences) {
+            System.out.println("Experience: " + exp.getTitle() + " - Date Range: " + exp.getDateRange() + " - End Year: " + extractEndYearFromDateRange(exp.getDateRange()));
+        }
+        
+        return topExperiences;
     }
 
     public List<ResumeBlock> selectTopProjects(List<ResumeBlock> projects, String jobDescription) {
@@ -367,5 +397,41 @@ public class ResumeBlockService {
 
     public void clearEmbeddingCache() {
         embedder.clearCache();
+    }
+    
+    /**
+     * Extract the end year from a date range string
+     */
+    private int extractEndYearFromDateRange(String dateRange) {
+        if (dateRange == null || dateRange.trim().isEmpty()) {
+            return 0;
+        }
+        
+        // Handle various date range formats
+        String[] patterns = {
+            "\\d{4}-\\d{4}", // 2020-2023
+            "\\d{4}", // 2023
+            "\\w+\\s+\\d{4}\\s*-\\s*\\w+\\s+\\d{4}", // Jan 2020 - Dec 2023
+            "\\w+\\s+\\d{4}\\s*-\\s*Present", // Jan 2020 - Present
+            "\\w+\\s+\\d{4}\\s*-\\s*\\w+\\s+\\d{4}" // Jan 2020 - Dec 2023
+        };
+        
+        for (String pattern : patterns) {
+            if (dateRange.matches(".*" + pattern + ".*")) {
+                // Extract the last 4-digit number (year)
+                String[] parts = dateRange.split("\\D+");
+                for (int i = parts.length - 1; i >= 0; i--) {
+                    if (parts[i].length() == 4) {
+                        try {
+                            return Integer.parseInt(parts[i]);
+                        } catch (NumberFormatException e) {
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return 0;
     }
 } 

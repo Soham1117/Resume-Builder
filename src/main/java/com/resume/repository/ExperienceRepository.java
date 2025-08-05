@@ -20,6 +20,12 @@ public interface ExperienceRepository extends JpaRepository<Experience, Long> {
     List<Experience> findByUserOrderByPriorityDesc(@Param("user") User user);
     
     /**
+     * Find all experiences by user, no sorting (for date-based sorting in Java)
+     */
+    @Query("SELECT e FROM Experience e WHERE e.user = :user")
+    List<Experience> findByUserNoSort(@Param("user") User user);
+    
+    /**
      * Find all experiences by user ID, ordered by priority descending and creation date
      */
     @Query("SELECT e FROM Experience e WHERE e.user.id = :userId ORDER BY e.priority DESC, e.createdAt DESC")
@@ -56,4 +62,13 @@ public interface ExperienceRepository extends JpaRepository<Experience, Long> {
            "WHERE e.user = :user " +
            "ORDER BY e.priority DESC, e.createdAt DESC")
     List<Experience> findByUserWithBulletsAndTechnologies(@Param("user") User user);
+    
+    /**
+     * Find all experiences by user with bullets eagerly loaded, no sorting (for date-based sorting in Java)
+     * This method is used for resume generation to avoid lazy loading issues
+     */
+    @Query("SELECT DISTINCT e FROM Experience e " +
+           "LEFT JOIN FETCH e.bullets " +
+           "WHERE e.user = :user")
+    List<Experience> findByUserWithBulletsAndTechnologiesNoSort(@Param("user") User user);
 } 

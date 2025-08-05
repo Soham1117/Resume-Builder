@@ -30,13 +30,13 @@ public class ExperienceController {
     private ExperienceService experienceService;
     
     /**
-     * Get all experiences for current user
+     * Get all experiences for current user, ordered by date (latest first)
      */
     @GetMapping
     public ResponseEntity<List<Experience>> getAllExperiences() {
         try {
             String username = getCurrentUsername();
-            List<Experience> experiences = experienceService.getAllExperiences(username);
+            List<Experience> experiences = experienceService.getAllExperiencesByDate(username);
             return ResponseEntity.ok(experiences);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
